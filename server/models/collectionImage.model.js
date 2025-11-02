@@ -1,5 +1,3 @@
-import {sequelize} from "../database/db";
-
 const {DataTypes} = require('sequelize');
 const {sequelize} = require('../database/db');
 
@@ -21,4 +19,4 @@ const CollectionImage = sequelize.define('CollectionImage', {
     tableName: 'collection_images',
 });
 
-export {CollectionImage};
+module.exports = CollectionImage;

@@ -1,6 +1,3 @@
-import {sequelize} from "../database/db";
-import {Sequelize} from "sequelize";
-
 const {DataTypes} = require('sequelize');
 const {sequelize} = require('../database/db');
 
@@ -18,16 +15,21 @@ const User = sequelize.define('User', {
         allowNull: false,
         unique: true,
     },
+    password_hash: { // FIELD FOR AUTHENTICATION
+        type: DataTypes.STRING(255),
+        allowNull: false,
+    },
     avatar_url: {
         type: DataTypes.TEXT,
+        allowNull: true,
     },
     created_at: {
         type: DataTypes.DATE,
-        defaultValue: Sequelize.fn('now'),
+        defaultValue: DataTypes.NOW,
     },
 }, {
     timestamps: false, // Tắt 'createdAt' và 'updatedAt' tự động của Sequelize
     tableName: 'users',
 });
 
-export {User};
+module.exports = User;

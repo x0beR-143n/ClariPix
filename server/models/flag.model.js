@@ -1,7 +1,5 @@
-import {sequelize} from "../database/db";
-import {Sequelize} from "sequelize";
-
-const {DataTypes, Sequelize} = require("sequelize");
+const {DataTypes} = require("sequelize");
+const { sequelize } = require("sequelize");
 
 const Flag = sequelize.define('Flag', {
     id: {
@@ -33,7 +31,7 @@ const Flag = sequelize.define('Flag', {
     },
     created_at: {
         type: DataTypes.DATE,
-        defaultValue: Sequelize.fn('now'),
+        defaultValue: DataTypes.NOW,
     },
 }, {
     timestamps: false,
@@ -43,4 +41,4 @@ const Flag = sequelize.define('Flag', {
     ]
 });
 
-exports.Flag = Flag;
+module.exports = Flag;

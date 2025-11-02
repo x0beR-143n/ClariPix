@@ -1,6 +1,3 @@
-import {sequelize} from "../database/db";
-import {Sequelize} from "sequelize";
-
 const {DataTypes} = require('sequelize');
 const {sequelize} = require('../database/db');
 
@@ -23,7 +20,7 @@ const Collection = sequelize.define('Collection', {
     },
     created_at: {
         type: DataTypes.DATE,
-        defaultValue: Sequelize.fn('now'),
+        defaultValue: DataTypes.NOW,
     },
 }, {
     timestamps: false,
@@ -33,4 +30,4 @@ const Collection = sequelize.define('Collection', {
     ]
 });
 
-exports.Collection = Collection;
+module.exports = Collection;

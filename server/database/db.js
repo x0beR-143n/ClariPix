@@ -10,42 +10,10 @@ const sequelize = new Sequelize(
         host: process.env.DB_HOST,
         port: process.env.DB_PORT,
         dialect: 'postgres',
-        logging: false, // Tắt log SQL ra console, bật 'console.log' nếu cần debug
+        logging: console.log
     }
 );
 
-// Định nghĩa các mối quan hệ (Associations)
+// sequelize.sync({ force: true });
 
-// User <-> Image (One-to-Many)
-// User.hasMany(Image, { foreignKey: 'uploader_id', as: 'images' });
-// Image.belongsTo(User, { foreignKey: 'uploader_id', as: 'uploader' });
-//
-// // User <-> Collection (One-to-Many)
-// User.hasMany(Collection, { foreignKey: 'user_id', as: 'collections' });
-// Collection.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
-//
-// // Image <-> Flag (One-to-Many)
-// Image.hasMany(Flag, { foreignKey: 'image_id', as: 'flags' });
-// Flag.belongsTo(Image, { foreignKey: 'image_id', as: 'image' });
-//
-// // Collection <-> Image (Many-to-Many)
-// Collection.belongsToMany(Image, {
-//     through: CollectionImage, // Bảng nối
-//     foreignKey: 'collection_id',
-//     as: 'images',
-// });
-// Image.belongsToMany(Collection, {
-//     through: CollectionImage, // Bảng nối
-//     foreignKey: 'image_id',
-//     as: 'collections',
-// });
-//
-// // 4. Export mọi thứ
-// module.exports = {
-//     sequelize,
-//     User,
-//     Image,
-//     Collection,
-//     Flag,
-//     CollectionImage,
-// };
+module.exports = { sequelize };

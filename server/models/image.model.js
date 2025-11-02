@@ -1,6 +1,3 @@
-import {sequelize} from "../database/db";
-import {Sequelize} from "sequelize";
-
 const {DataTypes} = require('sequelize');
 const {sequelize} = require('../database/db');
 
@@ -38,7 +35,7 @@ const Image = sequelize.define('Image', {
     },
     created_at: {
         type: DataTypes.DATE,
-        defaultValue: Sequelize.fn('now'),
+        defaultValue: DataTypes.NOW,
     },
     total_views: {
         type: DataTypes.INTEGER,
@@ -60,4 +57,4 @@ const Image = sequelize.define('Image', {
     ]
 });
 
-export {Image};
+module.exports = Image;
