@@ -4,6 +4,7 @@ import swaggerDocs from "./swagger.js";
 import { sequelize } from "./database/db.js";
 import mainRouter from "./routes/main.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+import imageRoutes from "./routes/image.routes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import dotenv from "dotenv";
 dotenv.config();
@@ -16,6 +17,7 @@ app.use(express.json());
 // Routes
 app.use("/", mainRouter);
 app.use("/auth", authRoutes);
+app.use("/images", imageRoutes);
 
 // Swagger (⚠️ thêm trước app.listen)
 swaggerDocs(app);
