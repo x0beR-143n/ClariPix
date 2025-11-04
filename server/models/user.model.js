@@ -19,6 +19,14 @@ const User = sequelize.define('User', {
         type: DataTypes.STRING(255),
         allowNull: false,
     },
+    gender: {
+        type: DataTypes.ENUM('male', 'female', 'other'),
+        allowNull: true,
+    },
+    birthday: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
     avatar_url: {
         type: DataTypes.TEXT,
         allowNull: true,
