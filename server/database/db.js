@@ -20,6 +20,8 @@ const sequelize = new Sequelize(
     }
 );
 
-// sequelize.sync({ force: true });
+sequelize.sync({ alter: true })
+    .then(() => console.log('✅ Database synced'))
+    .catch(err => console.error('❌ Database sync error:', err));
 
 module.exports = { sequelize };

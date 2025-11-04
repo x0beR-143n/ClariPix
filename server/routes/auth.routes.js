@@ -34,7 +34,9 @@ const validate = (validations) => {
 const registerValidation = [
     body('name').trim().isLength({ min: 1 }).withMessage('Name is required'),
     body('email').isEmail().withMessage('Valid email is required'),
-    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    body('gender').optional().isIn(['male', 'female', 'other']).withMessage('Gender must be male, female, or other'),
+    body('birthday').optional().isDate().withMessage('Birthday must be a valid date (YYYY-MM-DD)'),
 ];
 
 const loginValidation = [
@@ -68,6 +70,14 @@ const loginValidation = [
  *               password:
  *                 type: string
  *                 example: 12345678
+ *               gender:
+ *                 type: string
+ *                 enum: [male, female, other]
+ *                 example: male
+ *               birthday:
+ *                 type: string
+ *                 format: date
+ *                 example: 2004-04-22
  *     responses:
  *       201:
  *         description: Tạo tài khoản thành công
@@ -91,6 +101,12 @@ const loginValidation = [
  *                     email:
  *                       type: string
  *                       example: minhduc@example.com
+ *                     gender:
+ *                       type: string
+ *                       example: male
+ *                     birth:
+ *                       type: string
+ *                       example: 2004-04-22
  *       400:
  *         description: Dữ liệu không hợp lệ
  */
