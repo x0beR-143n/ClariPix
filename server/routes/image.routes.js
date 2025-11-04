@@ -6,7 +6,7 @@
  */
 
 const express = require("express");
-const { body, validationResult } = require("express-validator");
+const { body, validationResult, param} = require("express-validator");
 const imageController = require("../controllers/image.controller");
 const { authenticate } = require("../middleware/authenticate");
 
@@ -94,6 +94,51 @@ router.post(
     imageController.uploadMiddleware, // parse multipart/form-data
     validate(uploadValidation),
     imageController.uploadImage
+);
+
+const deleteValidation = [
+    param('imageId')
+        .notEmpty()
+        .withMessage('imageId is required')
+        .isUUID()
+        .withMessage('imageId must be a valid UUID'),
+];
+
+/**
+ * @swagger
+ * /images/delete/{imageId}:
+ *   delete:
+ *     summary: Xóa ảnh người dùng theo ID
+ *     tags: [Images]
+ *     parameters:
+ *       - in: path
+ *         name: imageId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của ảnh cần xóa
+ *     responses:
+ *       200:
+ *         description: Xóa ảnh thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Image deleted successfully
+ *       400:
+ *         description: Dữ liệu không hợp lệ
+ */
+
+router.delete(
+    "/delete/:imageId",
+    validate(deleteValidation),
+    imageController.deleteImage
 );
 
 module.exports = router;
