@@ -49,6 +49,39 @@ async function createImageRecordInDB(imageData) {
     }
 }
 
+async function deleteImageFromS3(imageId) {
+    try {
+        // Find image record in DB
+        const imageRecord = await Image.findByPk(imageId);
+        if (!imageRecord) {
+            throw new Error('Image not found');
+        }
+
+        // Extract the S3 key from the image URL
+        const imageUrl = imageRecord.image_url;
+        const bucketName = process.env.AWS_BUCKET_NAME;
+        const urlParts = new URL(imageUrl);
+        const s3Key = urlParts.pathname.substring(1); // Remove leading '/'
+        console.log("Found the corresponding S3 key: ", s3Key);
+
+        // Delete from S3
+        const params = {
+            Bucket: bucketName,
+            Key: s3Key,
+        };
+
+        await s3.deleteObject(params).promise();
+        console.log('Deleted image successfully from S3: ', imageUrl);
+
+        // Delete record from DB
+        await imageRecord.destroy();
+        console.log('Deleted image record successfully from DB: ', imageId);
+    } catch (error) {
+        console.error('Error deleting image from S3 or DB:', error);
+    }
+}
+
 module.exports = {
     createImageRecordInDB,
+    deleteImageFromS3
 }
