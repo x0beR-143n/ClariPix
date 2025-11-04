@@ -1,5 +1,4 @@
 const AWS = require('aws-sdk');
-const { v4: uuidv4 } = require("uuid");
 const Image = require("../models/image.model");
 
 const s3 = new AWS.S3({
@@ -8,12 +7,7 @@ const s3 = new AWS.S3({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
 
-async function uploadToS3(fileBuffer, originalName, mimeType) {
-    // Create a unique file path
-    const now = new Date();
-    const datePath = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
-    const uniqueKey = `uploads/${datePath}/${Date.now()}-${uuidv4()}-${originalName.replace(/\s+/g, '_')}`;
-
+async function uploadToS3(uniqueKey, fileBuffer, mimeType) {
     // Upload to S3
     const params = {
         Bucket: process.env.AWS_BUCKET_NAME,
@@ -27,19 +21,24 @@ async function uploadToS3(fileBuffer, originalName, mimeType) {
 }
 
 async function createImageRecordInDB(imageData) {
-    const { uploader_id, fileBuffer, originalName, mimeType, description } = imageData;
-
-    // Upload image to S3
-    const imageUrl = await uploadToS3(fileBuffer, originalName, mimeType);
+    const { uploader_id, fileBuffer, mimeType, description } = imageData;
 
     try {
         // Create image record in DB
         const imageRecord = await Image.create({
             uploader_id,
-            image_url: imageUrl,
+            image_url: "",
             description,
             // Other fields can be set later after GCP vision call
         });
+
+        // Upload the image to S3
+        const uniqueKey = `images/${imageRecord.id}`;
+        const imageUrl = await uploadToS3(uniqueKey, fileBuffer, mimeType);
+
+        // Update the image record with the S3 URL
+        imageRecord.image_url = imageUrl;
+        await imageRecord.save();
 
         console.log('Image record created successfully. The location is:', imageUrl);
         return imageRecord;
