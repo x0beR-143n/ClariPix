@@ -123,3 +123,17 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Hide default calendar icon for date inputs when we style our own */
+.hide-date-icon {
+  -webkit-appearance: none;
+  appearance: none;
+}
+.hide-date-icon::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  display: none;
+}
+.hide-date-icon::-webkit-inner-spin-button,
+.hide-date-icon::-webkit-clear-button {
+  display: none;
+}
