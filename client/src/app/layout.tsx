@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Montserrat  } from "next/font/google";
 import "../style/globals.css";
+import AppSideBar from "../components/shared/AppSideBar";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -24,9 +26,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${montserrat.variable} antialiased`}
+        className={`${montserrat.variable} antialiased flex`}
       >
-        {children}
+        <AppSideBar />
+        <ScrollArea className="h-screen w-full">
+          {children}
+        </ScrollArea>
       </body>
     </html>
   );
