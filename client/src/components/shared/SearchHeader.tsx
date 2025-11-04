@@ -16,7 +16,7 @@ const isLogin = true
 
 export default function SearchHeader() {
   return (
-    <div className="w-full p-5 flex items-center gap-x-8">
+    <div className="w-full flex items-center gap-x-8">
       <InputGroup className="w-9/10 h-12 shadow-none has-[[data-slot=input-group-control]:focus-visible]:ring-0">
         <InputGroupInput placeholder="Find your favourite image..." />
         <InputGroupAddon>
