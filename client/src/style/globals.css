@@ -125,6 +125,35 @@ body {
 }
 
 
+/* Hide default calendar icon for date inputs when we style our own */
+.hide-date-icon {
+  -webkit-appearance: none;
+  appearance: none;
+}
+.hide-date-icon::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  display: none;
+}
+.hide-date-icon::-webkit-inner-spin-button,
+.hide-date-icon::-webkit-clear-button {
+  display: none;
+}
+
+/* Hide native password reveal/clear icons on some browsers */
+.no-password-reveal {
+  -webkit-appearance: none;
+  appearance: none;
+}
+.no-password-reveal::-ms-reveal,
+.no-password-reveal::-ms-clear {
+  display: none;
+}
+.no-password-reveal::-webkit-textfield-decoration-container {
+  display: none;
+}
+
+
 .side-bar-item {
   @apply w-12 h-12 hover:bg-zinc-200 transition duration-300 rounded-lg flex justify-center items-center cursor-pointer
 }
+
