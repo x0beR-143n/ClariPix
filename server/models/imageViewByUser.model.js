@@ -16,6 +16,9 @@ const ImageViewByUser = sequelize.define('ImageViewByUser', {
   }, {
     timestamps: false,
     tableName: 'image_views_by_user',
+    indexes: [
+      { fields: ['image_id'] },
+    ],
   });
 
 module.exports = ImageViewByUser;

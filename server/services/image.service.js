@@ -86,7 +86,7 @@ async function deleteImageFromS3(userId, imageId) {
     }
 }
 
-async function addView(userId, imageId) {
+async function incrementView(userId, imageId) {
     try {
         // Check if the view record already exists. If not, create it and increment view count.
         const [viewRecord, created] = await ImageViewByUser.findOrCreate({
@@ -100,9 +100,14 @@ async function addView(userId, imageId) {
                 image.total_views += 1;
                 await image.save();
             }
+
+            return true;
         }
+
+        return false;
     } catch (error) {
         console.error('Error adding view record:', error);
+        throw error;
     }
 }
 
@@ -111,5 +116,5 @@ async function addView(userId, imageId) {
 module.exports = {
     createImageRecordInDB,
     deleteImageFromS3,
-    addView
+    incrementView
 }
