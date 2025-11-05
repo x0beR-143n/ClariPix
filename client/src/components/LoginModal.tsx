@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -142,7 +143,7 @@ export default function LoginModal({ open, onClose, onLogin, onOpenSignup }: Log
               </p>
 
               <p className="text-center pt-2 text-[12px] text-zinc-600 leading-5">
-                By continuing, you agree to ClariPix's <a className="underline" href="#">Terms of Service</a> and acknowledge you've read our <a className="underline" href="#">Privacy Policy</a>.
+                By continuing, you agree to ClariPix&apos;s <a className="underline" href="#">Terms of Service</a> and acknowledge you&apos;ve read our <a className="underline" href="#">Privacy Policy</a>.
               </p>
             </form>
           </div>
