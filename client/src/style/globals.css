@@ -123,3 +123,8 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+
+.side-bar-item {
+  @apply w-12 h-12 hover:bg-zinc-200 transition duration-300 rounded-lg flex justify-center items-center cursor-pointer
+}
