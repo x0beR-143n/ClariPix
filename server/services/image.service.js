@@ -1,6 +1,6 @@
 const AWS = require('aws-sdk');
-const { v4: uuidv4 } = require("uuid");
 const Image = require("../models/image.model");
+const ImageViewByUser = require("../models/imageViewByUser.model");
 
 const s3 = new AWS.S3({
     region: process.env.AWS_REGION || 'ap-southeast-2',
@@ -8,12 +8,7 @@ const s3 = new AWS.S3({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
 
-async function uploadToS3(fileBuffer, originalName, mimeType) {
-    // Create a unique file path
-    const now = new Date();
-    const datePath = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
-    const uniqueKey = `uploads/${datePath}/${Date.now()}-${uuidv4()}-${originalName.replace(/\s+/g, '_')}`;
-
+async function uploadToS3(uniqueKey, fileBuffer, mimeType) {
     // Upload to S3
     const params = {
         Bucket: process.env.AWS_BUCKET_NAME,
@@ -27,19 +22,24 @@ async function uploadToS3(fileBuffer, originalName, mimeType) {
 }
 
 async function createImageRecordInDB(imageData) {
-    const { uploader_id, fileBuffer, originalName, mimeType, description } = imageData;
-
-    // Upload image to S3
-    const imageUrl = await uploadToS3(fileBuffer, originalName, mimeType);
+    const { uploader_id, fileBuffer, mimeType, description } = imageData;
 
     try {
         // Create image record in DB
         const imageRecord = await Image.create({
             uploader_id,
-            image_url: imageUrl,
+            image_url: "",
             description,
             // Other fields can be set later after GCP vision call
         });
+
+        // Upload the image to S3
+        const uniqueKey = `images/${imageRecord.id}`;
+        const imageUrl = await uploadToS3(uniqueKey, fileBuffer, mimeType);
+
+        // Update the image record with the S3 URL
+        imageRecord.image_url = imageUrl;
+        await imageRecord.save();
 
         console.log('Image record created successfully. The location is:', imageUrl);
         return imageRecord;
@@ -49,12 +49,16 @@ async function createImageRecordInDB(imageData) {
     }
 }
 
-async function deleteImageFromS3(imageId) {
+async function deleteImageFromS3(userId, imageId) {
     try {
         // Find image record in DB
         const imageRecord = await Image.findByPk(imageId);
         if (!imageRecord) {
             throw new Error('Image not found');
+        }
+
+        if (imageRecord.uploader_id !== userId) {
+            throw new Error('Unauthorized: You do not own this image');
         }
 
         // Extract the S3 key from the image URL
@@ -78,10 +82,39 @@ async function deleteImageFromS3(imageId) {
         console.log('Deleted image record successfully from DB: ', imageId);
     } catch (error) {
         console.error('Error deleting image from S3 or DB:', error);
+        throw error;
     }
 }
 
+async function incrementView(userId, imageId) {
+    try {
+        // Check if the view record already exists. If not, create it and increment view count.
+        const [viewRecord, created] = await ImageViewByUser.findOrCreate({
+            where: { user_id: userId, image_id: imageId }
+        });
+
+        if (created) {
+            // Increment view count in Image model
+            const image = await Image.findByPk(imageId);
+            if (image) {
+                image.total_views += 1;
+                await image.save();
+            }
+
+            return true;
+        }
+
+        return false;
+    } catch (error) {
+        console.error('Error adding view record:', error);
+        throw error;
+    }
+}
+
+
+
 module.exports = {
     createImageRecordInDB,
-    deleteImageFromS3
+    deleteImageFromS3,
+    incrementView
 }

@@ -14,8 +14,9 @@ async function uploadImage(req, res) {
             });
         }
 
+        const uploader_id = req.user.userId;
 
-        const { uploader_id, description } = req.body;
+        const { description } = req.body;
         // Single file upload
         const { buffer, originalname, mimetype } = req.file;
 
@@ -36,7 +37,7 @@ async function uploadImage(req, res) {
         console.error('Error in uploadImage controller:', error);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
             status: 'error',
-            message: 'Failed to upload image'
+            message: 'Failed to upload image. ' + error.message
         });
     }
 }
@@ -45,7 +46,9 @@ async function deleteImage(req, res) {
     try {
         const { imageId } = req.params;
 
-        await imageService.deleteImageFromS3(imageId);
+        const userId = req.user.userId;
+
+        await imageService.deleteImageFromS3(userId, imageId);
 
         res.status(StatusCodes.OK).json({
             status: 'success',
@@ -55,7 +58,29 @@ async function deleteImage(req, res) {
         console.error('Error in deleteImage controller:', error);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
             status: 'error',
-            message: 'Failed to delete image'
+            message: 'Failed to delete image. ' + error.message
+        });
+    }
+}
+
+async function incrementViewCount(req, res) {
+    try {
+        const { imageId } = req.params;
+        const userId = req.user.userId;
+
+        const result = await imageService.incrementView(userId, imageId);
+        let message = 'View count incremented successfully';
+        if (!result) {
+            message = 'Already viewed this. View count not incremented.';
+        }
+        res.status(StatusCodes.OK).json({
+            status: 'success',
+            message: message
+        });
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            status: 'error',
+            message: 'Failed to increment view count. ' + error.message
         });
     }
 }
@@ -65,5 +90,6 @@ const uploadMiddleware = upload.single('image'); // Order of middleware matters:
 module.exports = {
     uploadImage,
     uploadMiddleware,
-    deleteImage
+    deleteImage,
+    incrementViewCount
 };

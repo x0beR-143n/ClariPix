@@ -124,6 +124,7 @@ body {
   }
 }
 
+
 /* Hide default calendar icon for date inputs when we style our own */
 .hide-date-icon {
   -webkit-appearance: none;
@@ -150,3 +151,9 @@ body {
 .no-password-reveal::-webkit-textfield-decoration-container {
   display: none;
 }
+
+
+.side-bar-item {
+  @apply w-12 h-12 hover:bg-zinc-200 transition duration-300 rounded-lg flex justify-center items-center cursor-pointer
+}
+

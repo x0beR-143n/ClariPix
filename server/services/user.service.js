@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
 
 async function register(userData) {
-    const { name, email, password } = userData;
+    const { name, email, password, gender, birthday } = userData;
 
     try {
         console.log('🔍 Checking if user exists...');
@@ -26,7 +26,9 @@ async function register(userData) {
         const user = await User.create({
             name,
             email,
-            password_hash
+            password_hash,
+            gender: gender || null,
+            birthday: birthday || null
         });
 
         console.log('🎫 Generating JWT token...');
@@ -44,6 +46,8 @@ async function register(userData) {
                 id: user.id,
                 name: user.name,
                 email: user.email,
+                gender: user.gender,
+                birthday: user.birthday,
                 avatar_url: user.avatar_url,
                 created_at: user.created_at
             },
@@ -94,6 +98,8 @@ async function login(loginData) {
                 id: user.id,
                 name: user.name,
                 email: user.email,
+                gender: user.gender,
+                birthday: user.birthday,
                 avatar_url: user.avatar_url,
                 created_at: user.created_at
             },
