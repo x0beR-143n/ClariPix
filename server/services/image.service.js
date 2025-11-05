@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const Image = require("../models/image.model");
+const ImageViewByUser = require("../models/imageViewByUser.model");
 
 const s3 = new AWS.S3({
     region: process.env.AWS_REGION || 'ap-southeast-2',
@@ -80,7 +81,30 @@ async function deleteImageFromS3(imageId) {
     }
 }
 
+async function addView(userId, imageId) {
+    try {
+        // Check if the view record already exists. If not, create it and increment view count.
+        const [viewRecord, created] = await ImageViewByUser.findOrCreate({
+            where: { user_id: userId, image_id: imageId }
+        });
+
+        if (created) {
+            // Increment view count in Image model
+            const image = await Image.findByPk(imageId);
+            if (image) {
+                image.total_views += 1;
+                await image.save();
+            }
+        }
+    } catch (error) {
+        console.error('Error adding view record:', error);
+    }
+}
+
+
+
 module.exports = {
     createImageRecordInDB,
-    deleteImageFromS3
+    deleteImageFromS3,
+    addView
 }
