@@ -30,7 +30,6 @@ const validate = (validations) => {
 
 // Validation rules
 const uploadValidation = [
-    body("uploader_id").notEmpty().withMessage("uploader_id is required"),
     body("description").optional().isString(),
 ];
 
@@ -40,6 +39,8 @@ const uploadValidation = [
  *   post:
  *     summary: Upload ảnh mới của người dùng
  *     tags: [Images]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -47,12 +48,8 @@ const uploadValidation = [
  *           schema:
  *             type: object
  *             required:
- *               - uploader_id
  *               - image
  *             properties:
- *               uploader_id:
- *                 type: string
- *                 example: 71c9e45f-56ab-4f7b-93d7-fb19841e2b2b
  *               description:
  *                 type: string
  *                 example: Mô tả về ảnh (tùy chọn)
@@ -91,6 +88,7 @@ const uploadValidation = [
 
 router.post(
     "/upload",
+    authenticate,
     imageController.uploadMiddleware, // parse multipart/form-data
     validate(uploadValidation),
     imageController.uploadImage
@@ -110,6 +108,8 @@ const deleteValidation = [
  *   delete:
  *     summary: Xóa ảnh người dùng theo ID
  *     tags: [Images]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: imageId
@@ -137,6 +137,7 @@ const deleteValidation = [
 
 router.delete(
     "/delete/:imageId",
+    authenticate,
     validate(deleteValidation),
     imageController.deleteImage
 );

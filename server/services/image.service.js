@@ -48,12 +48,16 @@ async function createImageRecordInDB(imageData) {
     }
 }
 
-async function deleteImageFromS3(imageId) {
+async function deleteImageFromS3(userId, imageId) {
     try {
         // Find image record in DB
         const imageRecord = await Image.findByPk(imageId);
         if (!imageRecord) {
             throw new Error('Image not found');
+        }
+
+        if (imageRecord.uploader_id !== userId) {
+            throw new Error('Unauthorized: You do not own this image');
         }
 
         // Extract the S3 key from the image URL
@@ -77,6 +81,7 @@ async function deleteImageFromS3(imageId) {
         console.log('Deleted image record successfully from DB: ', imageId);
     } catch (error) {
         console.error('Error deleting image from S3 or DB:', error);
+        throw error;
     }
 }
 
