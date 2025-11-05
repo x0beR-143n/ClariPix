@@ -1,3 +1,4 @@
+'use client'
 import Link from "next/link"
 import Image from "next/image"
 import { ChevronDown, Search } from "lucide-react"
@@ -10,21 +11,25 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
+import LoginModal from "../LoginModal"
+import SignUpModal from "../SignUpModal"
+import SignUpButton from "../SignUpButton"
+import LoginButton from "../LoginButton"
 
 const ava_url = "/img/ava_main.jpg"
-const isLogin = true
+const isLogin = false
 
 export default function SearchHeader() {
   return (
     <div className="w-full flex items-center gap-x-8">
-      <InputGroup className="w-9/10 h-12 shadow-none has-[[data-slot=input-group-control]:focus-visible]:ring-0">
+      <InputGroup className="flex-1 h-12 shadow-none has-[[data-slot=input-group-control]:focus-visible]:ring-0">
         <InputGroupInput placeholder="Find your favourite image..." />
         <InputGroupAddon>
           <Search />
         </InputGroupAddon>
       </InputGroup>
 
-      {isLogin && (
+      {isLogin ? (
         <DropdownMenu>
           {/* Trigger */}
           <DropdownMenuTrigger asChild>
@@ -102,6 +107,13 @@ export default function SearchHeader() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+      ) : (
+        <div className="flex gap-3">
+          
+          <LoginButton />
+          <SignUpButton />
+        </div>
+   
       )}
     </div>
   )
