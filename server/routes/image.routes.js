@@ -73,6 +73,18 @@ const uploadValidation = [
  *                     id:
  *                       type: string
  *                       example: a87f4e1a-d3b8-4f4f-9d62-5cbf78a7f9b9
+ *                     created_at:
+ *                       type: string
+ *                       example: 2025-11-03T10:15:30.000Z
+ *                     total_views:
+ *                       type: integer
+ *                       example: 0
+ *                     total_likes:
+ *                       type: integer
+ *                       example: 0
+ *                     status:
+ *                       type: string
+ *                       example: pending
  *                     uploader_id:
  *                       type: string
  *                       example: 71c9e45f-56ab-4f7b-93d7-fb19841e2b2b
@@ -104,7 +116,7 @@ const deleteValidation = [
 
 /**
  * @swagger
- * /images/delete/{imageId}:
+ * /images/{imageId}:
  *   delete:
  *     summary: Xóa ảnh người dùng theo ID
  *     tags: [Images]
@@ -136,10 +148,39 @@ const deleteValidation = [
  */
 
 router.delete(
-    "/delete/:imageId",
+    "/:imageId",
     authenticate,
     validate(deleteValidation),
     imageController.deleteImage
 );
+
+
+/**
+ * @swagger
+ * /images/{imageId}/view:
+ *   post:
+ *     summary: Tăng số lượt xem của ảnh
+ *     tags: [Images]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: imageId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của ảnh
+ *     responses:
+ *       200:
+ *         description: Lượt xem của ảnh đã được tăng
+ *       400:
+ *         description: Dữ liệu không hợp lệ
+ */
+
+router.post(
+    "/:imageId/view",
+    authenticate,
+    imageController.incrementViewCount
+)
 
 module.exports = router;
