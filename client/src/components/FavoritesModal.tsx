@@ -51,7 +51,6 @@ export default function FavoritesModal({
     const names = topics ?? DEFAULT_TOPICS;
     return names.map((label) => {
       const slug = toSlug(label);
-      // Expect files under public/topics/<slug>.jpg (e.g., music.jpg)
       return {
         key: label,
         label,
@@ -94,7 +93,7 @@ export default function FavoritesModal({
       {/* Modal */}
       <div className="absolute inset-0 flex items-start md:items-center justify-center p-4 md:p-6">
         <div className="w-full max-w-[520px] max-h-[90vh] rounded-[28px] bg-white text-zinc-900 shadow-2xl ring-1 ring-black/5 overflow-hidden flex flex-col">
-          {/* Close (cố định) */}
+          {/* Close (fixed) */}
           <div className="flex items-center justify-end p-3 flex-shrink-0">
             <button
               aria-label="Close"
@@ -107,8 +106,8 @@ export default function FavoritesModal({
             </button>
           </div>
 
-          {/* Header (cố định) */}
-          <div className="px-7 -mt-2 flex-shrink-0">
+          {/* Header (fixed) */}
+          <div className="px-7 flex-shrink-0">
             <div className="mx-auto mb-4 h-12 w-12 rounded-full overflow-hidden">
               <Image
                 src="/claripix_logo.png"
@@ -128,8 +127,8 @@ export default function FavoritesModal({
             </p>
           </div>
 
-          {/* GRID (chỉ phần này scroll) */}
-          <div className="px-7 pb-4 overflow-y-auto flex-1">
+          {/* Grid (scrollable area, added top padding) */}
+          <div className="px-7 pt-3 pb-4 overflow-y-auto flex-1 scroll-py-3">
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {items.map((it) => {
                 const active = selected.includes(it.key);
@@ -142,8 +141,10 @@ export default function FavoritesModal({
                     onClick={() => toggle(it.key)}
                     aria-pressed={active}
                     className={[
-                      "relative rounded-2xl overflow-hidden aspect-[4/3] group",
-                      "ring-1 ring-zinc-200 hover:ring-zinc-300 transition",
+                      "group relative cursor-pointer rounded-2xl overflow-hidden aspect-[4/3]",
+                      "ring-1 ring-zinc-200 hover:ring-zinc-300",
+                      "transform-gpu transition-transform duration-300 ease-out",
+                      "hover:scale-[1.03] active:scale-95 hover:z-[1] hover:shadow-xl",
                       active ? "outline outline-2 outline-red-500" : "",
                     ].join(" ")}
                   >
@@ -157,7 +158,10 @@ export default function FavoritesModal({
                       quality={70}
                       placeholder="blur"
                       blurDataURL={BLUR_PLACEHOLDER}
-                      className={["object-cover transition-opacity", isLoaded ? "opacity-100" : "opacity-0"].join(" ")}
+                      className={[
+                        "object-cover transition-opacity",
+                        isLoaded ? "opacity-100" : "opacity-0",
+                      ].join(" ")}
                       onLoadingComplete={() =>
                         setLoaded((prev) => ({ ...prev, [it.key]: true }))
                       }
@@ -167,6 +171,7 @@ export default function FavoritesModal({
                     />
 
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
+
                     <span className="absolute left-2.5 bottom-2.5 text-white font-semibold text-[14px] drop-shadow pointer-events-none">
                       {it.label}
                     </span>
@@ -184,12 +189,12 @@ export default function FavoritesModal({
             </div>
           </div>
 
-          {/* Footer (cố định) */}
+          {/* Footer (fixed) */}
           <div className="px-7 pb-6 pt-2 border-t border-zinc-200 flex-shrink-0">
             <button
               onClick={handleSave}
               disabled={!canContinue || saving}
-              className="h-11 w-full rounded-[18px] bg-red-600 text-white font-semibold text-[15px] hover:bg-red-700 disabled:opacity-60"
+              className="h-11 w-full rounded-[18px] bg-red-600 text-white font-semibold text-[15px] hover:bg-red-700 disabled:opacity-60 cursor-pointer"
             >
               {saving ? "Saving..." : "Continue"}
             </button>

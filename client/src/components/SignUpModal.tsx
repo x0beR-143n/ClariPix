@@ -162,7 +162,7 @@ export default function SignUpModal({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="hide-date-icon w-full h-11 rounded-[12px] border border-zinc-300 px-3.5 pr-11 text-[15px] outline-none focus:ring-2 focus:ring-zinc-400"
+                    className="no-password-reveal w-full h-11 rounded-[12px] border border-zinc-300 px-3.5 pr-11 text-[15px] outline-none focus:ring-2 focus:ring-zinc-400"
                   />
                   <button
                     type="button"
@@ -203,7 +203,7 @@ export default function SignUpModal({
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  className="w-full h-11 rounded-[12px] border border-zinc-300 px-3.5 text-[15px] outline-none focus:ring-2 focus:ring-zinc-400"
+                  className="no-password-reveal w-full h-11 rounded-[12px] border border-zinc-300 px-3.5 text-[15px] outline-none focus:ring-2 focus:ring-zinc-400"
                 />
               </div>
 

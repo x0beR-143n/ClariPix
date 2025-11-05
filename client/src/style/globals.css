@@ -137,3 +137,16 @@ body {
 .hide-date-icon::-webkit-clear-button {
   display: none;
 }
+
+/* Hide native password reveal/clear icons on some browsers */
+.no-password-reveal {
+  -webkit-appearance: none;
+  appearance: none;
+}
+.no-password-reveal::-ms-reveal,
+.no-password-reveal::-ms-clear {
+  display: none;
+}
+.no-password-reveal::-webkit-textfield-decoration-container {
+  display: none;
+}
