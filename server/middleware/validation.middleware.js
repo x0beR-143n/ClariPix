@@ -25,7 +25,7 @@ const registerValidation = [
     body('email').isEmail().withMessage('Valid email is required'),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
     body('gender').optional().isIn(['male', 'female', 'other']).withMessage('Gender must be male, female, or other'),
-    body('birthday').optional().isDate().withMessage('Birthday must be a valid date (YYYY-MM-DD)'),
+    body('birthdate').optional().isDate().withMessage('Birthdate must be a valid date (YYYY-MM-DD)'),
 ];
 
 const loginValidation = [
@@ -36,7 +36,7 @@ const loginValidation = [
 const updateProfileValidation = [
     body('name').optional().trim().isLength({ min: 1 }).withMessage('Name cannot be empty'),
     body('gender').optional().isIn(['male', 'female', 'other']).withMessage('Gender must be male, female, or other'),
-    body('birthday').optional().isDate().withMessage('Birthday must be a valid date (YYYY-MM-DD)'),
+    body('birthdate').optional().isDate().withMessage('Birthdate must be a valid date (YYYY-MM-DD)'),
     body('avatar_url').optional().isURL().withMessage('Avatar URL must be a valid URL'),
     body('preferences').optional().isArray().withMessage('Preferences must be an array'),
     body('preferences.*').optional().isString().withMessage('Each preference must be a string')

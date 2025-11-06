@@ -44,7 +44,7 @@ const router = express.Router();
  *                 type: string
  *                 enum: [male, female, other]
  *                 example: "male"
- *               birthday:
+ *               birthdate:
  *                 type: string
  *                 format: date
  *                 example: "1990-01-01"
@@ -86,7 +86,7 @@ const router = express.Router();
  *                         gender:
  *                           type: string
  *                           example: "male"
- *                         birthday:
+ *                         birthdate:
  *                           type: string
  *                           format: date
  *                           example: "1990-01-01"
@@ -182,7 +182,7 @@ const router = express.Router();
  *                         gender:
  *                           type: string
  *                           example: "male"
- *                         birthday:
+ *                         birthdate:
  *                           type: string
  *                           format: date
  *                           example: "1990-01-01"

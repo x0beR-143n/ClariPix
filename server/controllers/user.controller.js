@@ -1,9 +1,10 @@
 const userService = require('../services/user.service');
+const {StatusCodes} = require("http-status-codes");
 
 async function getUserProfile(req, res, next) {
     try {
         const user = await userService.getUserById(req.user.userId);
-        res.json({
+        res.status(StatusCodes.OK).json({
             success: true,
             data: user
         });
@@ -14,16 +15,16 @@ async function getUserProfile(req, res, next) {
 
 async function updateProfile(req, res, next) {
     try {
-        const { name, gender, birthday, avatar_url, preferences } = req.body;
+        const { name, gender, birthdate, avatar_url, preferences } = req.body;
         const result = await userService.updateUserProfile(req.user.userId, {
             name,
             gender,
-            birthday,
+            birthdate,
             avatar_url,
             preferences
         });
 
-        res.json({
+        res.status(StatusCodes.OK).json({
             success: true,
             message: 'Profile updated successfully',
             data: result
@@ -31,12 +32,13 @@ async function updateProfile(req, res, next) {
     } catch (error) {
         next(error);
     }
+
 }
 
 async function getCategories(req, res, next) {
     try {
         const categories = await userService.getAvailableCategories();
-        res.json({
+        res.status(StatusCodes.OK).json({
             success: true,
             data: categories
         });
