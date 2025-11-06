@@ -3,9 +3,9 @@ const userService = require('../services/user.service');
 
 async function register(req, res, next) {
     try {
-        const { name, email, password, gender, birthdate, preferences } = req.body;
+        const { name, email, password, gender, birthdate } = req.body;
 
-        const user = await userService.register({ name, email, password, gender, birthdate, preferences });
+        const user = await userService.register({ name, email, password, gender, birthdate });
 
         res.status(StatusCodes.CREATED).json({
             success: true,

@@ -9,7 +9,7 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/user.controller');
 const { authenticate } = require('../middleware/authenticate');
-const { validate, updateProfileValidation } = require('../middleware/validation.middleware');
+const { validate, updateProfileValidation, preferencesValidation } = require('../middleware/validation.middleware');
 
 /**
  * @swagger
@@ -110,7 +110,7 @@ const { validate, updateProfileValidation } = require('../middleware/validation.
  *                 type: array
  *                 items:
  *                   type: string
- *                 example: ["technology", "science", "arts"]
+ *                 example: ["technology", "science", "art"]
  *     responses:
  *       200:
  *         description: Profile updated successfully
@@ -150,7 +150,7 @@ const { validate, updateProfileValidation } = require('../middleware/validation.
  *                       type: array
  *                       items:
  *                         type: string
- *                       example: ["technology", "science", "arts"]
+ *                       example: ["technology", "science", "art"]
  *       400:
  *         description: Invalid input data or validation error
  *       401:
@@ -163,9 +163,67 @@ const { validate, updateProfileValidation } = require('../middleware/validation.
 
 /**
  * @swagger
+ * /users/preferences:
+ *   post:
+ *     summary: Set user preferences
+ *     description: Set or update authenticated user's preferences
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - preferences
+ *             properties:
+ *               preferences:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["technology", "science", "art"]
+ *     responses:
+ *       200:
+ *         description: Preferences set successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Preferences set successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: "71c9e45f-56ab-4f7b-93d7-fb19841e2b2b"
+ *                     preferences:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       example: ["technology", "science", "art"]
+ *       400:
+ *         description: Invalid categories or validation error
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
  * /users/categories:
  *   get:
- *     summary: Get available categories for preferences
+ *     summary: Get all available categories for preferences
  *     description: Retrieve list of all available categories for user preferences
  *     tags: [Users]
  *     responses:
@@ -183,7 +241,7 @@ const { validate, updateProfileValidation } = require('../middleware/validation.
  *                   type: array
  *                   items:
  *                     type: string
- *                   example: ["technology", "sports", "science", "arts", "music", "travel", "food", "health", "business", "entertainment"]
+ *                   example: ["technology", "sports", "science", "art", "music", "travel", "food", "health", "business", "entertainment"]
  *       500:
  *         description: Internal server error
  */
@@ -193,5 +251,6 @@ router.get('/categories', userController.getCategories);
 // Protected routes
 router.get('/profile', authenticate, userController.getUserProfile);
 router.put('/profile', authenticate, validate(updateProfileValidation), userController.updateProfile);
+router.post('/preferences', authenticate, validate(preferencesValidation), userController.setPreferences);
 
 module.exports = router;

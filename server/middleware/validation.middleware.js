@@ -42,9 +42,15 @@ const updateProfileValidation = [
     body('preferences.*').optional().isString().withMessage('Each preference must be a string')
 ];
 
+const preferencesValidation = [
+    body('preferences').isArray().withMessage('Preferences must be an array'),
+    body('preferences.*').isString().withMessage('Each preference must be a string')
+];
+
 module.exports = {
     validate,
     registerValidation,
     loginValidation,
-    updateProfileValidation
+    updateProfileValidation,
+    preferencesValidation
 };
