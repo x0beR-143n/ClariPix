@@ -6,7 +6,7 @@ function authenticate(req, res, next) {
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(StatusCodes.UNAUTHORIZED).json({
-            status: 'error',
+            success: false,
             message: 'Access token is required'
         });
     }
@@ -19,7 +19,7 @@ function authenticate(req, res, next) {
         next();
     } catch (error) {
         return res.status(StatusCodes.UNAUTHORIZED).json({
-            status: 'error',
+            success: false,
             message: 'Invalid or expired token'
         });
     }

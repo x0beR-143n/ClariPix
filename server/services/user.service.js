@@ -1,13 +1,13 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
+const { AVAILABLE_CATEGORIES } = require('../constants/categories');
 
 async function register(userData) {
-    const { name, email, password, gender, birthday } = userData;
+    const { name, email, password, gender, birthday, preferences } = userData;
 
     try {
         console.log('🔍 Checking if user exists...');
-        // Check if user already exists
         const existingUser = await User.findOne({ where: { email } });
         if (existingUser) {
             console.log('❌ User already exists');
@@ -17,22 +17,20 @@ async function register(userData) {
         }
 
         console.log('🔐 Hashing password...');
-        // Hash password
         const saltRounds = 10;
         const password_hash = await bcrypt.hash(password, saltRounds);
 
         console.log('👤 Creating user...');
-        // Create user
         const user = await User.create({
             name,
             email,
             password_hash,
             gender: gender || null,
-            birthday: birthday || null
+            birthday: birthday || null,
+            preferences: preferences || []
         });
 
         console.log('🎫 Generating JWT token...');
-        // Generate JWT token
         const token = jwt.sign(
             { userId: user.id, email: user.email },
             process.env.JWT_SECRET || 'fallback_secret',
@@ -40,7 +38,6 @@ async function register(userData) {
         );
 
         console.log('✅ User registered successfully');
-        // Return user data without password
         return {
             user: {
                 id: user.id,
@@ -49,6 +46,7 @@ async function register(userData) {
                 gender: user.gender,
                 birthday: user.birthday,
                 avatar_url: user.avatar_url,
+                preferences: user.preferences,
                 created_at: user.created_at
             },
             token
@@ -64,7 +62,6 @@ async function login(loginData) {
 
     try {
         console.log('🔍 Finding user for login...');
-        // Find user
         const user = await User.findOne({ where: { email } });
         if (!user) {
             console.log('❌ User not found');
@@ -74,7 +71,6 @@ async function login(loginData) {
         }
 
         console.log('🔐 Comparing passwords...');
-        // Check password
         const isPasswordValid = await bcrypt.compare(password, user.password_hash);
         if (!isPasswordValid) {
             console.log('❌ Invalid password');
@@ -84,7 +80,6 @@ async function login(loginData) {
         }
 
         console.log('🎫 Generating JWT token for login...');
-        // Generate JWT token
         const token = jwt.sign(
             { userId: user.id, email: user.email },
             process.env.JWT_SECRET || 'fallback_secret',
@@ -92,7 +87,6 @@ async function login(loginData) {
         );
 
         console.log('✅ User logged in successfully');
-        // Return user data without password
         return {
             user: {
                 id: user.id,
@@ -101,6 +95,7 @@ async function login(loginData) {
                 gender: user.gender,
                 birthday: user.birthday,
                 avatar_url: user.avatar_url,
+                preferences: user.preferences,
                 created_at: user.created_at
             },
             token
@@ -125,8 +120,94 @@ async function getUserById(userId) {
     return user;
 }
 
+async function updateUserProfile(userId, profileData) {
+    try {
+        const { name, gender, birthday, avatar_url, preferences } = profileData;
+
+        // Validate preferences if provided
+        if (preferences && preferences.length > 0) {
+            const invalidCategories = preferences.filter(cat => !AVAILABLE_CATEGORIES.includes(cat));
+            if (invalidCategories.length > 0) {
+                const error = new Error(`Invalid categories: ${invalidCategories.join(', ')}`);
+                error.statusCode = 400;
+                throw error;
+            }
+        }
+
+        const user = await User.findByPk(userId);
+        if (!user) {
+            const error = new Error('User not found');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        // Update allowed fields
+        const allowedUpdates = {};
+        if (name !== undefined) allowedUpdates.name = name;
+        if (gender !== undefined) allowedUpdates.gender = gender;
+        if (birthday !== undefined) allowedUpdates.birthday = birthday;
+        if (avatar_url !== undefined) allowedUpdates.avatar_url = avatar_url;
+        if (preferences !== undefined) allowedUpdates.preferences = preferences;
+
+        await user.update(allowedUpdates);
+
+        return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            gender: user.gender,
+            birthday: user.birthday,
+            avatar_url: user.avatar_url,
+            preferences: user.preferences,
+            updated_at: new Date()
+        };
+    } catch (error) {
+        console.error('❌ Error in updateUserProfile service:', error);
+        throw error;
+    }
+}
+
+async function updateUserPreferences(userId, preferences) {
+    try {
+        // Validate preferences
+        if (preferences) {
+            const invalidCategories = preferences.filter(cat => !AVAILABLE_CATEGORIES.includes(cat));
+            if (invalidCategories.length > 0) {
+                const error = new Error(`Invalid categories: ${invalidCategories.join(', ')}`);
+                error.statusCode = 400;
+                throw error;
+            }
+        }
+
+        const user = await User.findByPk(userId);
+        if (!user) {
+            const error = new Error('User not found');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        user.preferences = preferences || [];
+        await user.save();
+
+        return {
+            id: user.id,
+            preferences: user.preferences
+        };
+    } catch (error) {
+        console.error('❌ Error in updateUserPreferences service:', error);
+        throw error;
+    }
+}
+
+async function getAvailableCategories() {
+    return AVAILABLE_CATEGORIES;
+}
+
 module.exports = {
     register,
     login,
-    getUserById
+    getUserById,
+    updateUserProfile,
+    updateUserPreferences,
+    getAvailableCategories
 };
