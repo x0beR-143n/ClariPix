@@ -48,11 +48,6 @@ const router = express.Router();
  *                 type: string
  *                 format: date
  *                 example: "1990-01-01"
- *               preferences:
- *                 type: array
- *                 items:
- *                   type: string
- *                 example: ["technology", "sports"]
  *     responses:
  *       201:
  *         description: User registered successfully
@@ -93,10 +88,6 @@ const router = express.Router();
  *                         avatar_url:
  *                           type: string
  *                           nullable: true
- *                         preferences:
- *                           type: array
- *                           items:
- *                             type: string
  *                         created_at:
  *                           type: string
  *                           format: date-time

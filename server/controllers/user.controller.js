@@ -1,6 +1,21 @@
 const userService = require('../services/user.service');
 const {StatusCodes} = require("http-status-codes");
 
+async function setPreferences(req, res, next) {
+    try {
+        const {preferences} = req.body;
+        const result = await userService.setUserPreferences(req.user.userId, preferences);
+
+        res.status(StatusCodes.OK).json({
+            success: true,
+            message: 'Preferences updated successfully',
+            data: result
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 async function getUserProfile(req, res, next) {
     try {
         const user = await userService.getUserById(req.user.userId);
@@ -32,7 +47,6 @@ async function updateProfile(req, res, next) {
     } catch (error) {
         next(error);
     }
-
 }
 
 async function getCategories(req, res, next) {
@@ -48,6 +62,7 @@ async function getCategories(req, res, next) {
 }
 
 module.exports = {
+    setPreferences,
     getUserProfile,
     updateProfile,
     getCategories

@@ -4,7 +4,7 @@ const User = require('../models/user.model');
 const { AVAILABLE_CATEGORIES } = require('../constants/categories');
 
 async function register(userData) {
-    const { name, email, password, gender, birthdate, preferences } = userData;
+    const { name, email, password, gender, birthdate } = userData;
 
     try {
         console.log('🔍 Checking if user exists...');
@@ -27,7 +27,7 @@ async function register(userData) {
             password_hash,
             gender: gender || null,
             birthdate: birthdate || null,
-            preferences: preferences || []
+            preferences: []
         });
 
         console.log('🎫 Generating JWT token...');
@@ -106,6 +106,40 @@ async function login(loginData) {
     }
 }
 
+async function setUserPreferences(userId, preferences) {
+    try {
+        console.log('🔍 Validating preferences...');
+        if (preferences && preferences.length > 0) {
+            const invalidCategories = preferences.filter(cat => !AVAILABLE_CATEGORIES.includes(cat));
+            if (invalidCategories.length > 0) {
+                console.log('❌ Invalid categories found:', invalidCategories);
+                const error = new Error(`Invalid categories: ${invalidCategories.join(', ')}`);
+                error.statusCode = 400;
+                throw error;
+            }
+        }
+
+        const user = await User.findByPk(userId);
+        if (!user) {
+            console.log('❌ User not found for setting preferences');
+            const error = new Error('User not found');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        user.preferences = preferences || [];
+        await user.save();
+
+        return {
+            id: user.id,
+            preferences: user.preferences,
+        };
+    } catch (error) {
+        console.error('❌ Error in setUserPreferences service:', error);
+        throw error;
+    }
+}
+
 async function getUserById(userId) {
     const user = await User.findByPk(userId, {
         attributes: { exclude: ['password_hash'] }
@@ -174,6 +208,7 @@ async function getAvailableCategories() {
 module.exports = {
     register,
     login,
+    setUserPreferences,
     getUserById,
     updateUserProfile,
     getAvailableCategories
