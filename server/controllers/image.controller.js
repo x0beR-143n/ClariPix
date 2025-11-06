@@ -85,11 +85,32 @@ async function incrementViewCount(req, res) {
     }
 }
 
+async function getImagesWithPagination(req, res) {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const sorter = req.query.sorter || 'created_at';
+        const order = req.query.order || 'DESC';
+
+        const images = await imageService.getImagesWithPagination(page, limit, sorter, order);
+        res.status(StatusCodes.OK).json({
+            status: 'success',
+            data: images
+        });
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            status: 'error',
+            message: 'Failed to retrieve images. ' + error.message
+        });
+    }
+}
+
 const uploadMiddleware = upload.single('image'); // Order of middleware matters: first multer, then the controller
 
 module.exports = {
     uploadImage,
     uploadMiddleware,
     deleteImage,
-    incrementViewCount
+    incrementViewCount,
+    getImagesWithPagination
 };
