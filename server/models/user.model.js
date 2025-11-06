@@ -31,6 +31,20 @@ const User = sequelize.define('User', {
         type: DataTypes.TEXT,
         allowNull: true,
     },
+    preferences: {
+        type: DataTypes.ARRAY(DataTypes.STRING),
+        defaultValue: [],
+        validate: {
+            isValidCategories(value) {
+                if (value) {
+                    const invalidCategories = value.filter(cat => !AVAILABLE_CATEGORIES.includes(cat));
+                    if (invalidCategories.length > 0) {
+                        throw new Error(`Invalid categories: ${invalidCategories.join(', ')}`);
+                    }
+                }
+            }
+        }
+    },
     created_at: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,

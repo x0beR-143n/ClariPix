@@ -1,9 +1,10 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
+const { AVAILABLE_CATEGORIES } = require('../constants/categories');
 
 async function register(userData) {
-    const { name, email, password, gender, birthday } = userData;
+    const { name, email, password, gender, birthday, preferences } = userData;
 
     try {
         console.log('🔍 Checking if user exists...');
@@ -28,7 +29,8 @@ async function register(userData) {
             email,
             password_hash,
             gender: gender || null,
-            birthday: birthday || null
+            birthday: birthday || null,
+            preferences: preferences || []
         });
 
         console.log('🎫 Generating JWT token...');
@@ -49,6 +51,7 @@ async function register(userData) {
                 gender: user.gender,
                 birthday: user.birthday,
                 avatar_url: user.avatar_url,
+                preferences: user.preferences,
                 created_at: user.created_at
             },
             token
@@ -101,6 +104,7 @@ async function login(loginData) {
                 gender: user.gender,
                 birthday: user.birthday,
                 avatar_url: user.avatar_url,
+                preferences: user.preferences,
                 created_at: user.created_at
             },
             token
@@ -123,6 +127,42 @@ async function getUserById(userId) {
     }
 
     return user;
+}
+
+async function updateUserPreferences(userId, preferences) {
+    try {
+        // Validate preferences
+        if (preferences) {
+            const invalidCategories = preferences.filter(cat => !AVAILABLE_CATEGORIES.includes(cat));
+            if (invalidCategories.length > 0) {
+                const error = new Error(`Invalid categories: ${invalidCategories.join(', ')}`);
+                error.statusCode = 400;
+                throw error;
+            }
+        }
+
+        const user = await User.findByPk(userId);
+        if (!user) {
+            const error = new Error('User not found');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        user.preferences = preferences || [];
+        await user.save();
+
+        return {
+            id: user.id,
+            preferences: user.preferences
+        };
+    } catch (error) {
+        console.error('❌ Error in updateUserPreferences service:', error);
+        throw error;
+    }
+}
+
+async function getAvailableCategories() {
+    return AVAILABLE_CATEGORIES;
 }
 
 module.exports = {
