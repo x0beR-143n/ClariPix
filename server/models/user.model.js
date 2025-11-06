@@ -29,8 +29,8 @@ const User = sequelize.define('User', {
         type: DataTypes.ENUM('male', 'female', 'other'),
         allowNull: true,
     },
-    birthday: {
-        type: DataTypes.DATE,
+    birthdate: {
+        type: DataTypes.DATEONLY,
         allowNull: true,
     },
     avatar_url: {

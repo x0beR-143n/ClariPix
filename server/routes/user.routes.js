@@ -50,7 +50,7 @@ const { validate, updateProfileValidation } = require('../middleware/validation.
  *                       enum: [male, female, other]
  *                       nullable: true
  *                       example: "male"
- *                     birthday:
+ *                     birthdate:
  *                       type: string
  *                       format: date
  *                       nullable: true
@@ -99,7 +99,7 @@ const { validate, updateProfileValidation } = require('../middleware/validation.
  *                 type: string
  *                 enum: [male, female, other]
  *                 example: "male"
- *               birthday:
+ *               birthdate:
  *                 type: string
  *                 format: date
  *                 example: "1990-01-01"
@@ -140,7 +140,7 @@ const { validate, updateProfileValidation } = require('../middleware/validation.
  *                     gender:
  *                       type: string
  *                       example: "male"
- *                     birthday:
+ *                     birthdate:
  *                       type: string
  *                       example: "1990-01-01"
  *                     avatar_url:

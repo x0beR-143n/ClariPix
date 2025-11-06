@@ -3,12 +3,12 @@ const userService = require('../services/user.service');
 
 async function register(req, res, next) {
     try {
-        const { name, email, password, gender, birthday } = req.body;
+        const { name, email, password, gender, birthdate, preferences } = req.body;
 
-        const user = await userService.register({ name, email, password, gender, birthday });
+        const user = await userService.register({ name, email, password, gender, birthdate, preferences });
 
         res.status(StatusCodes.CREATED).json({
-            status: 'success',
+            success: true,
             message: 'User registered successfully',
             data: user
         });
@@ -24,7 +24,7 @@ async function login(req, res, next) {
         const result = await userService.login({ email, password });
 
         res.status(StatusCodes.OK).json({
-            status: 'success',
+            success: true,
             message: 'Login successful',
             data: result
         });
@@ -33,21 +33,7 @@ async function login(req, res, next) {
     }
 }
 
-async function getProfile(req, res, next) {
-    try {
-        const user = await userService.getUserById(req.user.userId);
-
-        res.status(StatusCodes.OK).json({
-            status: 'success',
-            data: user
-        });
-    } catch (error) {
-        next(error);
-    }
-}
-
 module.exports = {
     register,
-    login,
-    getProfile
+    login
 };

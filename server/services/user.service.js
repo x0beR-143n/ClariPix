@@ -4,7 +4,7 @@ const User = require('../models/user.model');
 const { AVAILABLE_CATEGORIES } = require('../constants/categories');
 
 async function register(userData) {
-    const { name, email, password, gender, birthday, preferences } = userData;
+    const { name, email, password, gender, birthdate, preferences } = userData;
 
     try {
         console.log('🔍 Checking if user exists...');
@@ -26,7 +26,7 @@ async function register(userData) {
             email,
             password_hash,
             gender: gender || null,
-            birthday: birthday || null,
+            birthdate: birthdate || null,
             preferences: preferences || []
         });
 
@@ -44,7 +44,7 @@ async function register(userData) {
                 name: user.name,
                 email: user.email,
                 gender: user.gender,
-                birthday: user.birthday,
+                birthdate: user.birthdate,
                 avatar_url: user.avatar_url,
                 preferences: user.preferences,
                 created_at: user.created_at
@@ -93,7 +93,7 @@ async function login(loginData) {
                 name: user.name,
                 email: user.email,
                 gender: user.gender,
-                birthday: user.birthday,
+                birthdate: user.birthdate,
                 avatar_url: user.avatar_url,
                 preferences: user.preferences,
                 created_at: user.created_at
@@ -122,7 +122,7 @@ async function getUserById(userId) {
 
 async function updateUserProfile(userId, profileData) {
     try {
-        const { name, gender, birthday, avatar_url, preferences } = profileData;
+        const { name, gender, birthdate, avatar_url, preferences } = profileData;
 
         // Validate preferences if provided
         if (preferences && preferences.length > 0) {
@@ -145,7 +145,7 @@ async function updateUserProfile(userId, profileData) {
         const allowedUpdates = {};
         if (name !== undefined) allowedUpdates.name = name;
         if (gender !== undefined) allowedUpdates.gender = gender;
-        if (birthday !== undefined) allowedUpdates.birthday = birthday;
+        if (birthdate !== undefined) allowedUpdates.birthdate = birthdate;
         if (avatar_url !== undefined) allowedUpdates.avatar_url = avatar_url;
         if (preferences !== undefined) allowedUpdates.preferences = preferences;
 
@@ -156,45 +156,13 @@ async function updateUserProfile(userId, profileData) {
             name: user.name,
             email: user.email,
             gender: user.gender,
-            birthday: user.birthday,
+            birthdate: user.birthdate,
             avatar_url: user.avatar_url,
             preferences: user.preferences,
             updated_at: new Date()
         };
     } catch (error) {
         console.error('❌ Error in updateUserProfile service:', error);
-        throw error;
-    }
-}
-
-async function updateUserPreferences(userId, preferences) {
-    try {
-        // Validate preferences
-        if (preferences) {
-            const invalidCategories = preferences.filter(cat => !AVAILABLE_CATEGORIES.includes(cat));
-            if (invalidCategories.length > 0) {
-                const error = new Error(`Invalid categories: ${invalidCategories.join(', ')}`);
-                error.statusCode = 400;
-                throw error;
-            }
-        }
-
-        const user = await User.findByPk(userId);
-        if (!user) {
-            const error = new Error('User not found');
-            error.statusCode = 404;
-            throw error;
-        }
-
-        user.preferences = preferences || [];
-        await user.save();
-
-        return {
-            id: user.id,
-            preferences: user.preferences
-        };
-    } catch (error) {
-        console.error('❌ Error in updateUserPreferences service:', error);
         throw error;
     }
 }
@@ -208,6 +176,5 @@ module.exports = {
     login,
     getUserById,
     updateUserProfile,
-    updateUserPreferences,
     getAvailableCategories
 };
