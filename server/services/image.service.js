@@ -111,10 +111,18 @@ async function incrementView(userId, imageId) {
     }
 }
 
-
+async function getImagesWithPagination(page, limit, sorter, order) {
+    const offset = (page - 1) * limit;
+    return await Image.findAll({
+        offset,
+        limit,
+        order: [[sorter, order]],
+    });
+}
 
 module.exports = {
     createImageRecordInDB,
     deleteImageFromS3,
-    incrementView
+    incrementView,
+    getImagesWithPagination
 }

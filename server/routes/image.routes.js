@@ -6,7 +6,7 @@
  */
 
 const express = require("express");
-const { body, validationResult, param} = require("express-validator");
+const { body, validationResult, param, query} = require("express-validator");
 const imageController = require("../controllers/image.controller");
 const { authenticate } = require("../middleware/authenticate");
 
@@ -181,6 +181,81 @@ router.post(
     "/:imageId/view",
     authenticate,
     imageController.incrementViewCount
+)
+
+
+const paginationValidation = [
+    query('page').optional().isInt({ min: 1 }).withMessage('page must be an integer greater than 0'),
+    query('limit').optional().isInt({ min: 1 }).withMessage('limit must be an integer greater than 0'),
+    query('sorter').optional().isString().withMessage('sorter must be a string'),
+    query('order').optional().isIn(['ASC', 'DESC']).withMessage('order must be either ASC or DESC'),
+];
+
+/**
+ * @swagger
+ * /images:
+ *   get:
+ *     summary: Lấy danh sách ảnh với phân trang
+ *     tags: [Images]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Số trang
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Số ảnh trên mỗi trang
+ *       - in: query
+ *         name: sorter
+ *         schema:
+ *           type: string
+ *           default: created_at
+ *         description: Trường để sắp xếp ảnh
+ *       - in: query
+ *         name: order
+ *         schema:
+ *           type: string
+ *           enum: [ASC, DESC]
+ *           default: DESC
+ *         description: Thứ tự sắp xếp
+ *     responses:
+ *       200:
+ *         description: Danh sách ảnh với phân trang
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         example: a87f4e1a-d3b8-4f4f-9d62-5cbf78a7f9b9
+ *                       uploader_id:
+ *                         type: string
+ *                         example: 71c9e45f-56ab-4f7b-93d7-fb19841e2b2b
+ *                       image_url:
+ *                         type: string
+ *                         example: https://claripix-uploads.s3.ap-southeast-1.amazonaws.com/uploads/2025/11/03/abc.jpg
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+
+router.get(
+    "",
+    validate(paginationValidation),
+    imageController.getImagesWithPagination
 )
 
 module.exports = router;
