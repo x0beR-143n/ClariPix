@@ -258,4 +258,58 @@ router.get(
     imageController.getImagesWithPagination
 )
 
+const getImageByIdValidation = [
+    param('imageId')
+        .notEmpty()
+        .withMessage('imageId is required')
+        .isUUID()
+        .withMessage('imageId must be a valid UUID'),
+];
+
+/**
+ * @swagger
+ * /images/{imageId}:
+ *   get:
+ *     summary: Lấy thông tin ảnh theo ID
+ *     tags: [Images]
+ *     parameters:
+ *       - in: path
+ *         name: imageId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của ảnh cần lấy thông tin
+ *     responses:
+ *       200:
+ *         description: Thông tin ảnh
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: a87f4e1a-d3b8-4f4f-9d62-5cbf78a7f9b9
+ *                     uploader_id:
+ *                       type: string
+ *                       example: 71c9e45f-56ab-4f7b-93d7-fb19841e2b2b
+ *                     image_url:
+ *                       type: string
+ *                       example: https://claripix-uploads.s3.ap-southeast-1.amazonaws.com/uploads/2025/11/03/abc.jpg
+ *       400:
+ *         description: Dữ liệu không hợp lệ
+ */
+
+router.get(
+    "/:imageId",
+    validate(getImageByIdValidation),
+    imageController.getImageById
+);
+
 module.exports = router;
