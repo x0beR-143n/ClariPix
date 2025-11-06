@@ -19,10 +19,7 @@ const Image = sequelize.define('Image', {
         type: DataTypes.TEXT,
     },
     safe_score: {
-        type: DataTypes.REAL, // Kiểu 'real' trong SQL
-    },
-    risk_level: {
-        type: DataTypes.ENUM('low', 'medium', 'high'),
+        type: DataTypes.REAL,
     },
     adult_level: {
         type: DataTypes.ENUM('UNKNOWN', 'VERY_UNLIKELY', 'UNLIKELY', 'POSSIBLE', 'LIKELY', 'VERY_LIKELY'),
@@ -32,6 +29,9 @@ const Image = sequelize.define('Image', {
     },
     racy_level: {
         type: DataTypes.ENUM('UNKNOWN', 'VERY_UNLIKELY', 'UNLIKELY', 'POSSIBLE', 'LIKELY', 'VERY_LIKELY'),
+    },
+    categories: {
+        type: DataTypes.ARRAY(DataTypes.STRING),
     },
     created_at: {
         type: DataTypes.DATE,
@@ -45,10 +45,14 @@ const Image = sequelize.define('Image', {
         type: DataTypes.INTEGER,
         defaultValue: 0,
     },
-    status: {
-        type: DataTypes.ENUM('pending', 'public', 'quarantined', 'removed'),
+    safe_search_status: {
+        type: DataTypes.ENUM('pending', 'processed', 'error'),
         defaultValue: 'pending',
     },
+    categorization_status: {
+        type: DataTypes.ENUM('pending', 'processed', 'error'),
+        defaultValue: 'pending',
+    }
 }, {
     timestamps: false,
     tableName: 'images',
