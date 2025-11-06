@@ -12,14 +12,20 @@ async function getUserProfile(req, res, next) {
     }
 }
 
-async function updatePreferences(req, res, next) {
+async function updateProfile(req, res, next) {
     try {
-        const { preferences } = req.body;
-        const result = await userService.updateUserPreferences(req.user.userId, preferences);
+        const { name, gender, birthday, avatar_url, preferences } = req.body;
+        const result = await userService.updateUserProfile(req.user.userId, {
+            name,
+            gender,
+            birthday,
+            avatar_url,
+            preferences
+        });
 
         res.json({
             success: true,
-            message: 'Preferences updated successfully',
+            message: 'Profile updated successfully',
             data: result
         });
     } catch (error) {
@@ -41,6 +47,6 @@ async function getCategories(req, res, next) {
 
 module.exports = {
     getUserProfile,
-    updatePreferences,
+    updateProfile,
     getCategories
 };

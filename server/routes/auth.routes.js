@@ -2,53 +2,20 @@
  * @swagger
  * tags:
  *   name: Auth
- *   description: API cho đăng ký, đăng nhập và xác thực người dùng
+ *   description: User authentication APIs
  */
 
 const express = require('express');
-const { body, validationResult} = require('express-validator');
 const authController = require('../controllers/auth.controller');
-const { authenticate } = require('../middleware/authenticate');
+const { validate, registerValidation, loginValidation } = require('../middleware/validation.middleware');
 
 const router = express.Router();
-
-// Validation middleware
-const validate = (validations) => {
-    return async (req, res, next) => {
-        await Promise.all(validations.map(validation => validation.run(req)));
-
-        const errors = validationResult(req);
-        if (errors.isEmpty()) {
-            return next();
-        }
-
-        res.status(400).json({
-            status: 'error',
-            message: 'Validation failed',
-            errors: errors.array()
-        });
-    };
-};
-
-// Validation rules
-const registerValidation = [
-    body('name').trim().isLength({ min: 1 }).withMessage('Name is required'),
-    body('email').isEmail().withMessage('Valid email is required'),
-    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-    body('gender').optional().isIn(['male', 'female', 'other']).withMessage('Gender must be male, female, or other'),
-    body('birthday').optional().isDate().withMessage('Birthday must be a valid date (YYYY-MM-DD)'),
-];
-
-const loginValidation = [
-    body('email').isEmail().withMessage('Valid email is required'),
-    body('password').notEmpty().withMessage('Password is required')
-];
 
 /**
  * @swagger
  * /auth/register:
  *   post:
- *     summary: Đăng ký tài khoản người dùng mới
+ *     summary: Register a new user
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -63,59 +30,107 @@ const loginValidation = [
  *             properties:
  *               name:
  *                 type: string
- *                 example: Hoang Minh Duc
+ *                 example: "John Doe"
  *               email:
  *                 type: string
- *                 example: minhduc@example.com
+ *                 format: email
+ *                 example: "john@example.com"
  *               password:
  *                 type: string
- *                 example: 12345678
+ *                 format: password
+ *                 minLength: 6
+ *                 example: "123456"
  *               gender:
  *                 type: string
  *                 enum: [male, female, other]
- *                 example: male
+ *                 example: "male"
  *               birthday:
  *                 type: string
  *                 format: date
- *                 example: 2004-04-22
+ *                 example: "1990-01-01"
+ *               preferences:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["technology", "sports"]
  *     responses:
  *       201:
- *         description: Tạo tài khoản thành công
+ *         description: User registered successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 status:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
  *                   type: string
- *                   example: success
+ *                   example: "User registered successfully"
  *                 data:
  *                   type: object
  *                   properties:
- *                     id:
+ *                     user:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                           format: uuid
+ *                           example: "71c9e45f-56ab-4f7b-93d7-fb19841e2b2b"
+ *                         name:
+ *                           type: string
+ *                           example: "John Doe"
+ *                         email:
+ *                           type: string
+ *                           example: "john@example.com"
+ *                         gender:
+ *                           type: string
+ *                           example: "male"
+ *                         birthday:
+ *                           type: string
+ *                           format: date
+ *                           example: "1990-01-01"
+ *                         avatar_url:
+ *                           type: string
+ *                           nullable: true
+ *                         preferences:
+ *                           type: array
+ *                           items:
+ *                             type: string
+ *                         created_at:
+ *                           type: string
+ *                           format: date-time
+ *                     token:
  *                       type: string
- *                       example: 71c9e45f-56ab-4f7b-93d7-fb19841e2b2b
- *                     name:
- *                       type: string
- *                       example: Hoang Minh Duc
- *                     email:
- *                       type: string
- *                       example: minhduc@example.com
- *                     gender:
- *                       type: string
- *                       example: male
- *                     birth:
- *                       type: string
- *                       example: 2004-04-22
+ *                       example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *       400:
- *         description: Dữ liệu không hợp lệ
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Validation failed"
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       409:
+ *         description: Email already exists
+ *       500:
+ *         description: Internal server error
  */
 
 /**
  * @swagger
  * /auth/login:
  *   post:
- *     summary: Đăng nhập tài khoản
+ *     summary: Login user
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -129,60 +144,71 @@ const loginValidation = [
  *             properties:
  *               email:
  *                 type: string
- *                 example: minhduc@example.com
+ *                 format: email
+ *                 example: "john@example.com"
  *               password:
  *                 type: string
- *                 example: 12345678
+ *                 format: password
+ *                 example: "123456"
  *     responses:
  *       200:
- *         description: Đăng nhập thành công và nhận token JWT
+ *         description: Login successful
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 status:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
  *                   type: string
- *                   example: success
- *                 token:
- *                   type: string
- *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *                   example: "Login successful"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                           example: "71c9e45f-56ab-4f7b-93d7-fb19841e2b2b"
+ *                         name:
+ *                           type: string
+ *                           example: "John Doe"
+ *                         email:
+ *                           type: string
+ *                           example: "john@example.com"
+ *                         gender:
+ *                           type: string
+ *                           example: "male"
+ *                         birthday:
+ *                           type: string
+ *                           format: date
+ *                           example: "1990-01-01"
+ *                         avatar_url:
+ *                           type: string
+ *                           nullable: true
+ *                         preferences:
+ *                           type: array
+ *                           items:
+ *                             type: string
+ *                         created_at:
+ *                           type: string
+ *                           format: date-time
+ *                     token:
+ *                       type: string
+ *                       example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *       400:
+ *         description: Validation error
  *       401:
- *         description: Email hoặc mật khẩu sai
- */
-
-/**
- * @swagger
- * /auth/profile:
- *   get:
- *     summary: Lấy thông tin người dùng hiện tại
- *     tags: [Auth]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Trả về thông tin người dùng đã xác thực
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: string
- *                   example: 71c9e45f-56ab-4f7b-93d7-fb19841e2b2b
- *                 name:
- *                   type: string
- *                   example: Hoang Minh Duc
- *                 email:
- *                   type: string
- *                   example: minhduc@example.com
- *       401:
- *         description: Không có hoặc token không hợp lệ
+ *         description: Invalid email or password
+ *       500:
+ *         description: Internal server error
  */
 
 // Routes
 router.post('/register', validate(registerValidation), authController.register);
 router.post('/login', validate(loginValidation), authController.login);
-router.get('/profile', authenticate, authController.getProfile);
 
 module.exports = router;

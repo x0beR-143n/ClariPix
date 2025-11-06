@@ -1,5 +1,7 @@
 const {DataTypes} = require('sequelize');
 const {sequelize} = require('../database/db');
+const { AVAILABLE_CATEGORIES } = require('../constants/categories');
+
 
 const User = sequelize.define('User', {
     id: {
@@ -9,11 +11,15 @@ const User = sequelize.define('User', {
     },
     name: {
         type: DataTypes.STRING(255),
+        allowNull: false,
     },
     email: {
         type: DataTypes.STRING(255),
         allowNull: false,
         unique: true,
+        validate: {
+            isEmail: true,
+        }
     },
     password_hash: { // FIELD FOR AUTHENTICATION
         type: DataTypes.STRING(255),
@@ -36,7 +42,7 @@ const User = sequelize.define('User', {
         defaultValue: [],
         validate: {
             isValidCategories(value) {
-                if (value) {
+                if (value && value.length > 0) {
                     const invalidCategories = value.filter(cat => !AVAILABLE_CATEGORIES.includes(cat));
                     if (invalidCategories.length > 0) {
                         throw new Error(`Invalid categories: ${invalidCategories.join(', ')}`);

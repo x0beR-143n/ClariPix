@@ -8,7 +8,6 @@ async function register(userData) {
 
     try {
         console.log('🔍 Checking if user exists...');
-        // Check if user already exists
         const existingUser = await User.findOne({ where: { email } });
         if (existingUser) {
             console.log('❌ User already exists');
@@ -18,12 +17,10 @@ async function register(userData) {
         }
 
         console.log('🔐 Hashing password...');
-        // Hash password
         const saltRounds = 10;
         const password_hash = await bcrypt.hash(password, saltRounds);
 
         console.log('👤 Creating user...');
-        // Create user
         const user = await User.create({
             name,
             email,
@@ -34,7 +31,6 @@ async function register(userData) {
         });
 
         console.log('🎫 Generating JWT token...');
-        // Generate JWT token
         const token = jwt.sign(
             { userId: user.id, email: user.email },
             process.env.JWT_SECRET || 'fallback_secret',
@@ -42,7 +38,6 @@ async function register(userData) {
         );
 
         console.log('✅ User registered successfully');
-        // Return user data without password
         return {
             user: {
                 id: user.id,
@@ -67,7 +62,6 @@ async function login(loginData) {
 
     try {
         console.log('🔍 Finding user for login...');
-        // Find user
         const user = await User.findOne({ where: { email } });
         if (!user) {
             console.log('❌ User not found');
@@ -77,7 +71,6 @@ async function login(loginData) {
         }
 
         console.log('🔐 Comparing passwords...');
-        // Check password
         const isPasswordValid = await bcrypt.compare(password, user.password_hash);
         if (!isPasswordValid) {
             console.log('❌ Invalid password');
@@ -87,7 +80,6 @@ async function login(loginData) {
         }
 
         console.log('🎫 Generating JWT token for login...');
-        // Generate JWT token
         const token = jwt.sign(
             { userId: user.id, email: user.email },
             process.env.JWT_SECRET || 'fallback_secret',
@@ -95,7 +87,6 @@ async function login(loginData) {
         );
 
         console.log('✅ User logged in successfully');
-        // Return user data without password
         return {
             user: {
                 id: user.id,
@@ -127,6 +118,53 @@ async function getUserById(userId) {
     }
 
     return user;
+}
+
+async function updateUserProfile(userId, profileData) {
+    try {
+        const { name, gender, birthday, avatar_url, preferences } = profileData;
+
+        // Validate preferences if provided
+        if (preferences && preferences.length > 0) {
+            const invalidCategories = preferences.filter(cat => !AVAILABLE_CATEGORIES.includes(cat));
+            if (invalidCategories.length > 0) {
+                const error = new Error(`Invalid categories: ${invalidCategories.join(', ')}`);
+                error.statusCode = 400;
+                throw error;
+            }
+        }
+
+        const user = await User.findByPk(userId);
+        if (!user) {
+            const error = new Error('User not found');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        // Update allowed fields
+        const allowedUpdates = {};
+        if (name !== undefined) allowedUpdates.name = name;
+        if (gender !== undefined) allowedUpdates.gender = gender;
+        if (birthday !== undefined) allowedUpdates.birthday = birthday;
+        if (avatar_url !== undefined) allowedUpdates.avatar_url = avatar_url;
+        if (preferences !== undefined) allowedUpdates.preferences = preferences;
+
+        await user.update(allowedUpdates);
+
+        return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            gender: user.gender,
+            birthday: user.birthday,
+            avatar_url: user.avatar_url,
+            preferences: user.preferences,
+            updated_at: new Date()
+        };
+    } catch (error) {
+        console.error('❌ Error in updateUserProfile service:', error);
+        throw error;
+    }
 }
 
 async function updateUserPreferences(userId, preferences) {
@@ -168,5 +206,8 @@ async function getAvailableCategories() {
 module.exports = {
     register,
     login,
-    getUserById
+    getUserById,
+    updateUserProfile,
+    updateUserPreferences,
+    getAvailableCategories
 };
