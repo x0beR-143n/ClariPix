@@ -105,6 +105,30 @@ async function getImagesWithPagination(req, res) {
     }
 }
 
+async function getImageById(req, res) {
+    try {
+        const { imageId } = req.params;
+
+        const image = await imageService.getImageById(imageId);
+        if (!image) {
+            return res.status(StatusCodes.NOT_FOUND).json({
+                status: 'error',
+                message: 'Image not found'
+            });
+        }
+
+        res.status(StatusCodes.OK).json({
+            status: 'success',
+            data: image
+        });
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            status: 'error',
+            message: 'Failed to retrieve image. ' + error.message
+        });
+    }
+}
+
 const uploadMiddleware = upload.single('image'); // Order of middleware matters: first multer, then the controller
 
 module.exports = {
@@ -112,5 +136,6 @@ module.exports = {
     uploadMiddleware,
     deleteImage,
     incrementViewCount,
-    getImagesWithPagination
+    getImagesWithPagination,
+    getImageById
 };

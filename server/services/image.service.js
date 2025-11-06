@@ -120,9 +120,14 @@ async function getImagesWithPagination(page, limit, sorter, order) {
     });
 }
 
+async function getImageById(imageId) {
+    return await Image.findByPk(imageId);
+}
+
 module.exports = {
     createImageRecordInDB,
     deleteImageFromS3,
     incrementView,
-    getImagesWithPagination
+    getImagesWithPagination,
+    getImageById
 }
