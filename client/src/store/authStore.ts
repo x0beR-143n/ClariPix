@@ -10,7 +10,7 @@ export type User = {
   birthdate: string
   avatar_url: string;
   created_at: string;
-  favourite_modal: string[];
+  preferences: string[];
 }
 
 type AuthState = {

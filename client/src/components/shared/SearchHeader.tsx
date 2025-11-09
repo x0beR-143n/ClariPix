@@ -1,6 +1,7 @@
 'use client'
 import Link from "next/link"
 import Image from "next/image"
+import { useState } from 'react'
 import { ChevronDown, Search } from "lucide-react"
 import { useRouter } from 'next/navigation'
 import {
@@ -13,10 +14,12 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import SignUpButton from "../auth/SignUpButton"
+import FavoritesModal from "../auth/FavoritesModal"
 import LoginButton from "../auth/LoginButton"
 import { useAuthStore } from "@/src/store/authStore"
 import { toast } from "sonner"
 import { useUsernameFormatter } from "@/src/libs/tousername"
+import { setPreferences } from "@/src/api/user"
 
 const male_url = '/img/man.png'
 
@@ -28,6 +31,7 @@ export default function SearchHeader() {
   const { toUsername } = useUsernameFormatter();
 
   const router = useRouter()
+  const [openFav, setOpenFav] = useState(false)
   const handleLogout = () => { 
     logout(); 
     toast.success("Logout successfully")
@@ -35,6 +39,7 @@ export default function SearchHeader() {
   }
 
   return (
+    <>
     <div className="w-full flex items-center gap-x-8">
       <InputGroup className="flex-1 h-12 shadow-none has-[[data-slot=input-group-control]:focus-visible]:ring-0">
         <InputGroupInput placeholder="Find your favourite image..." />
@@ -132,9 +137,19 @@ export default function SearchHeader() {
       ) : (
         <div className="flex gap-3">
           <LoginButton />
-          <SignUpButton />
+          <SignUpButton onSignedUp={() => setOpenFav(true)} />
         </div>
       )}
     </div>
+    <FavoritesModal
+      open={openFav}
+      onClose={() => setOpenFav(false)}
+      onSave={async (prefs) => {
+        await setPreferences(prefs)
+        toast.success('Preferences saved')
+        setOpenFav(false)
+      }}
+    />
+    </>
   )
 }

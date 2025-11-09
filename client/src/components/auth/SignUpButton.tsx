@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import SignUpModal from "./SignUpModal";
-import FavoritesModal from "./FavoritesModal";
 import { RegisterDTO } from "@/src/interfaces/auth";
 import { register } from "@/src/api/auth";
 import { toast } from "sonner";
@@ -10,11 +9,11 @@ import { toast } from "sonner";
 type Props = {
   className?: string;
   children?: React.ReactNode;
+  onSignedUp?: () => void;
 };
 
-export default function SignUpButton({ className, children }: Props) {
+export default function SignUpButton({ className, children, onSignedUp }: Props) {
   const [openSignup, setOpenSignup] = useState(false);
-  const [openFav, setOpenFav] = useState(false);
 
   return (
     <>
@@ -42,17 +41,11 @@ export default function SignUpButton({ className, children }: Props) {
           console.log(data);
           toast.success("Sign Up successfully")
           setOpenSignup(false);
-          setOpenFav(true);
+          onSignedUp?.();
         }}
         onGoToLogin={() => {
           setOpenSignup(false);
         }}
-      />
-
-      <FavoritesModal
-        open={openFav}
-        onClose={() => setOpenFav(false)}
-        onSave={() => setOpenFav(false)}
       />
     </>
   );
