@@ -3,6 +3,9 @@
 import { useState } from "react";
 import SignUpModal from "./SignUpModal";
 import FavoritesModal from "./FavoritesModal";
+import { RegisterDTO } from "@/src/interfaces/auth";
+import { register } from "@/src/api/auth";
+import { toast } from "sonner";
 
 type Props = {
   className?: string;
@@ -28,7 +31,16 @@ export default function SignUpButton({ className, children }: Props) {
       <SignUpModal
         open={openSignup}
         onClose={() => setOpenSignup(false)}
-        onSignUp={() => {
+        onSignUp={async (email, password, birthdate, name, gender) => {
+          const birth = birthdate ?? ''
+          const user_name = name ?? "";
+          const user_gender = gender ?? ''
+          const registerDTO : RegisterDTO = {
+            email, password, birthdate: birth , name: user_name, gender: user_gender,
+          }
+          const data = await register(registerDTO);
+          console.log(data);
+          toast.success("Sign Up successfully")
           setOpenSignup(false);
           setOpenFav(true);
         }}

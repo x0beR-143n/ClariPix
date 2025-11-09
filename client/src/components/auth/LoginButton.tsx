@@ -3,6 +3,8 @@
 import { useState } from "react";
 import LoginModal from "./LoginModal";
 import SignUpModal from "./SignUpModal";
+import { login } from "@/src/api/auth";
+import { toast } from "sonner" 
 
 type Props = {
   className?: string;
@@ -28,7 +30,12 @@ export default function LoginButton({ className, children }: Props) {
       <LoginModal
         open={openLogin}
         onClose={() => setOpenLogin(false)}
-        onLogin={() => setOpenLogin(false)}
+        onLogin={async (email, password) => {
+          const data = await login(email, password);
+          console.log(data);
+          toast.success("Login successfully")
+          setOpenLogin(false);
+        }}
         onOpenSignup={() => {
           setOpenLogin(false);
           setOpenSignup(true);
