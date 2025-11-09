@@ -2,16 +2,18 @@
 
 import { useState } from "react";
 import SignUpModal from "./SignUpModal";
-import FavoritesModal from "./FavoritesModal";
+import { RegisterDTO } from "@/src/interfaces/auth";
+import { register } from "@/src/api/auth";
+import { toast } from "sonner";
 
 type Props = {
   className?: string;
   children?: React.ReactNode;
+  onSignedUp?: () => void;
 };
 
-export default function SignUpButton({ className, children }: Props) {
+export default function SignUpButton({ className, children, onSignedUp }: Props) {
   const [openSignup, setOpenSignup] = useState(false);
-  const [openFav, setOpenFav] = useState(false);
 
   return (
     <>
@@ -28,19 +30,22 @@ export default function SignUpButton({ className, children }: Props) {
       <SignUpModal
         open={openSignup}
         onClose={() => setOpenSignup(false)}
-        onSignUp={() => {
+        onSignUp={async (email, password, birthdate, name, gender) => {
+          const birth = birthdate ?? ''
+          const user_name = name ?? "";
+          const user_gender = gender ?? ''
+          const registerDTO : RegisterDTO = {
+            email, password, birthdate: birth , name: user_name, gender: user_gender,
+          }
+          const data = await register(registerDTO);
+          console.log(data);
+          toast.success("Sign Up successfully")
           setOpenSignup(false);
-          setOpenFav(true);
+          onSignedUp?.();
         }}
         onGoToLogin={() => {
           setOpenSignup(false);
         }}
-      />
-
-      <FavoritesModal
-        open={openFav}
-        onClose={() => setOpenFav(false)}
-        onSave={() => setOpenFav(false)}
       />
     </>
   );

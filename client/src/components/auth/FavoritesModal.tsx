@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useMemo, useState } from "react";
 import Image from "next/image";
+import { toast } from "sonner";
 
 type FavoritesModalProps = {
   open: boolean;
@@ -75,7 +77,10 @@ export default function FavoritesModal({
     try {
       setSaving(true);
       await onSave?.(selected);
-    } finally {
+    } catch (err : any) {
+      toast.error(err?.message ?? "Can not update your preferences now. Please try again later")
+    } 
+    finally {
       setSaving(false);
     }
   };

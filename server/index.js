@@ -1,5 +1,6 @@
 // index.js
 import express from "express";
+import cors from "cors";
 import swaggerDocs from "./swagger.js";
 import { sequelize } from "./database/db.js";
 import mainRouter from "./routes/main.routes.js";
@@ -14,6 +15,11 @@ const app = express();
 const PORT = process.env.PORT || 3618;
 
 app.use(express.json());
+app.use(
+  cors({
+    origin: "http://localhost:3000"
+  })
+);
 
 // Routes
 app.use("/", mainRouter);

@@ -3,6 +3,7 @@ import { Montserrat  } from "next/font/google";
 import "../style/globals.css";
 import AppSideBar from "../components/shared/AppSideBar";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Toaster } from "sonner"
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -32,6 +33,7 @@ export default function RootLayout({
         <ScrollArea className="h-screen w-full">
           {children}
         </ScrollArea>
+        <Toaster richColors position="top-center" />
       </body>
     </html>
   );

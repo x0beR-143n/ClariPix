@@ -28,7 +28,7 @@ export default function LoginModal({ open, onClose, onLogin, onOpenSignup }: Log
       setLoading(true);
       await onLogin?.(email, password);
     } catch (err: any) {
-      setError(err?.message || "Login failed");
+      setError("Can not login due to: " + err?.message || "Login failed");
     } finally {
       setLoading(false);
     }
