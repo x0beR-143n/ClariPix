@@ -33,7 +33,7 @@ export default function RootLayout({
         <ScrollArea className="h-screen w-full">
           {children}
         </ScrollArea>
-        <Toaster richColors position="top-right" />
+        <Toaster richColors position="top-center" />
       </body>
     </html>
   );
