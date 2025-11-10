@@ -1,7 +1,6 @@
-const { Sequelize, DataTypes } = require('sequelize');
-require('dotenv').config(); // Tải các biến từ file .env
+const { Sequelize } = require('sequelize');
+require('dotenv').config();
 
-// 1. Khởi tạo kết nối Sequelize
 const sequelize = new Sequelize(
     process.env.DB_NAME,
     process.env.DB_USER,
@@ -12,16 +11,9 @@ const sequelize = new Sequelize(
         dialect: 'postgres',
         logging: false,
         dialectOptions: {
-            ssl: {
-                require: true,
-                rejectUnauthorized: false,
-            },
+            ssl: { require: true, rejectUnauthorized: false },
         },
     }
 );
-
-sequelize.sync({ alter: true })
-    .then(() => console.log('✅ Database synced'))
-    .catch(err => console.error('❌ Database sync error:', err));
 
 module.exports = { sequelize };

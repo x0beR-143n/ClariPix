@@ -61,9 +61,26 @@ async function getCategories(req, res, next) {
     }
 }
 
+async function getUserUploadedImages(req, res, next) {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+
+        const result = await userService.getUserUploadedImages(req.user.userId, page, limit);
+
+        res.status(StatusCodes.OK).json({
+            success: true,
+            data: result
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     setPreferences,
     getUserProfile,
     updateProfile,
-    getCategories
+    getCategories,
+    getUserUploadedImages
 };
