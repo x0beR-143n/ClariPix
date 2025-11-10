@@ -62,8 +62,37 @@ const collectionImagesValidation = [
     query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('limit must be an integer between 1 and 100')
 ];
 
+const multipleImageIdValidation = [
+    body("imageIds")
+        .isArray({ min: 1 })
+        .withMessage("imageIds must be an array with at least one image ID"),
+    body("imageIds.*")
+        .isUUID()
+        .withMessage("Each image ID must be a valid UUID")
+];
+
 const imageIdValidation = [
-    body("imageId").isUUID().withMessage("Invalid image ID"),
+    body("imageId")
+        .optional()
+        .isUUID()
+        .withMessage("Invalid image ID"),
+    body("imageIds")
+        .optional()
+        .isArray({ min: 1 })
+        .withMessage("imageIds must be an array with at least one image ID"),
+    body("imageIds.*")
+        .optional()
+        .isUUID()
+        .withMessage("Each image ID must be a valid UUID")
+];
+
+const imageIdOrImageIdsValidation = [
+    body().custom((value, { req }) => {
+        if (!req.body.imageId && !req.body.imageIds) {
+            throw new Error('Either imageId or imageIds must be provided');
+        }
+        return true;
+    })
 ];
 
 const imageIdParamValidation = [
@@ -90,6 +119,8 @@ module.exports = {
     createCollectionValidation,
     collectionIdValidation,
     collectionImagesValidation,
+    multipleImageIdValidation,
+    imageIdOrImageIdsValidation,
     imageIdValidation,
     imageIdParamValidation,
     paginationValidation

@@ -56,14 +56,25 @@ async function getCollectionImages(req, res, next) {
 async function addImageToCollection(req, res, next) {
     try {
         const { collectionId } = req.params;
-        const { imageId } = req.body;
+        const { imageIds } = req.body;
         const userId = req.user.userId;
 
-        const result = await collectionService.addImageToCollection(userId, collectionId, imageId);
+        if (!imageIds || (Array.isArray(imageIds) && imageIds.length === 0)) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                success: false,
+                message: 'No image IDs provided'
+            });
+        }
+
+        const result = await collectionService.addImageToCollection(userId, collectionId, imageIds);
 
         res.status(StatusCodes.OK).json({
             success: true,
-            message: result.message
+            message: result.message,
+            data: {
+                added: result.added,
+                errors: result.errors
+            }
         });
     } catch (error) {
         next(error);

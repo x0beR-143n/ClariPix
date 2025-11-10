@@ -88,25 +88,53 @@ async function deleteImageFromS3(userId, imageId) {
 
 async function incrementView(userId, imageId) {
     try {
-        // Check if the view record already exists. If not, create it and increment view count.
+        // Only increment view if user is authenticated
+        if (!userId) {
+            return false;
+        }
+
         const [viewRecord, created] = await ImageViewByUser.findOrCreate({
             where: { user_id: userId, image_id: imageId }
         });
 
         if (created) {
-            // Increment view count in Image model
-            const image = await Image.findByPk(imageId);
-            if (image) {
-                image.total_views += 1;
-                await image.save();
-            }
-
+            // Use atomic increment to avoid race conditions
+            await Image.increment('total_views', {
+                where: { id: imageId }
+            });
             return true;
         }
-
         return false;
     } catch (error) {
         console.error('Error adding view record:', error);
+        throw error;
+    }
+}
+
+async function getImageById(imageId, userId = null) {
+    try {
+        // First get the image
+        const image = await Image.findByPk(imageId);
+
+        if (!image) {
+            return null;
+        }
+
+        // Increment view count if user is authenticated
+        if (userId) {
+            try {
+                await incrementView(userId, imageId);
+                // Refresh the image to get updated view count
+                await image.reload();
+            } catch (error) {
+                console.error('Error incrementing view:', error);
+                // Continue even if view increment fails
+            }
+        }
+
+        return image;
+    } catch (error) {
+        console.error('Error in getImageById service:', error);
         throw error;
     }
 }
@@ -118,10 +146,6 @@ async function getImagesWithPagination(page, limit, sorter, order) {
         limit,
         order: [[sorter, order]],
     });
-}
-
-async function getImageById(imageId) {
-    return await Image.findByPk(imageId);
 }
 
 module.exports = {

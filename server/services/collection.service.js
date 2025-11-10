@@ -101,7 +101,7 @@ async function getCollectionImages(userId, collectionId, page = 1, limit = 10) {
     }
 }
 
-async function addImageToCollection(userId, collectionId, imageId) {
+async function addImageToCollection(userId, collectionId, imageIds) {
     try {
         // Kiểm tra collection thuộc về user
         const collection = await Collection.findOne({
@@ -115,36 +115,57 @@ async function addImageToCollection(userId, collectionId, imageId) {
             throw new Error('Collection not found or access denied');
         }
 
-        // Kiểm tra image tồn tại
-        const image = await Image.findByPk(imageId);
-        if (!image) {
-            throw new Error('Image not found');
-        }
+        // Ensure imageIds is an array
+        const imageIdArray = Array.isArray(imageIds) ? imageIds : [imageIds];
 
-        // Kiểm tra image đã có trong collection chưa
-        const existing = await CollectionImage.findOne({
-            where: {
-                collection_id: collectionId,
-                image_id: imageId
+        const results = [];
+        const errors = [];
+
+        for (const imageId of imageIdArray) {
+            try {
+                // Kiểm tra image tồn tại
+                const image = await Image.findByPk(imageId);
+                if (!image) {
+                    errors.push(`Image not found: ${imageId}`);
+                    continue;
+                }
+
+                // Kiểm tra image đã có trong collection chưa
+                const existing = await CollectionImage.findOne({
+                    where: {
+                        collection_id: collectionId,
+                        image_id: imageId
+                    }
+                });
+
+                if (existing) {
+                    errors.push(`Image already in collection: ${imageId}`);
+                    continue;
+                }
+
+                // Thêm image vào collection
+                await CollectionImage.create({
+                    collection_id: collectionId,
+                    image_id: imageId
+                });
+
+                results.push(imageId);
+            } catch (error) {
+                errors.push(`Error adding image ${imageId}: ${error.message}`);
             }
-        });
-
-        if (existing) {
-            throw new Error('Image already in collection');
         }
 
-        // Thêm image vào collection
-        await CollectionImage.create({
-            collection_id: collectionId,
-            image_id: imageId
-        });
-
-        return { message: 'Image added to collection successfully' };
+        return {
+            message: `Added ${results.length} image(s) to collection successfully`,
+            added: results,
+            errors: errors.length > 0 ? errors : undefined
+        };
     } catch (error) {
         console.error('Error adding image to collection:', error);
         throw error;
     }
 }
+
 
 async function removeImageFromCollection(userId, collectionId, imageId) {
     try {
