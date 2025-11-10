@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
 const { AVAILABLE_CATEGORIES } = require('../constants/categories');
+const Image = require('../models/image.model');
 
 async function register(userData) {
     const { name, email, password, gender, birthdate } = userData;
@@ -205,11 +206,47 @@ async function getAvailableCategories() {
     return AVAILABLE_CATEGORIES;
 }
 
+async function getUserUploadedImages(userId, page = 1, limit = 10) {
+    try {
+        const offset = (page - 1) * limit;
+
+        const images = await Image.findAll({
+            where: { uploader_id: userId },
+            limit,
+            offset,
+            order: [['created_at', 'DESC']],
+            include: [{
+                model: User,
+                as: 'uploader',
+                attributes: ['id', 'name', 'avatar_url']
+            }]
+        });
+
+        const total = await Image.count({
+            where: { uploader_id: userId }
+        });
+
+        return {
+            images,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit)
+            }
+        };
+    } catch (error) {
+        console.error('Error getting user uploaded images:', error);
+        throw error;
+    }
+}
+
 module.exports = {
     register,
     login,
     setUserPreferences,
     getUserById,
     updateUserProfile,
-    getAvailableCategories
+    getAvailableCategories,
+    getUserUploadedImages
 };

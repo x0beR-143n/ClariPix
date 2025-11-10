@@ -30,4 +30,14 @@ const Collection = sequelize.define('Collection', {
     ]
 });
 
+Collection.associate = function(models) {
+    Collection.belongsTo(models.User, { foreignKey: 'user_id' });
+    Collection.belongsToMany(models.Image, {
+        through: models.CollectionImage,
+        foreignKey: 'collection_id',
+        otherKey: 'image_id',
+        as: 'images'
+    });
+};
+
 module.exports = Collection;

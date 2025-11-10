@@ -56,7 +56,7 @@ const Image = sequelize.define('Image', {
 }, {
     timestamps: false,
     tableName: 'images',
-    indexes: [ // Thêm index như trong schema
+    indexes: [
         {fields: ['uploader_id']}
     ]
 });

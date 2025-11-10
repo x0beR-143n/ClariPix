@@ -246,11 +246,129 @@ const { validate, updateProfileValidation, preferencesValidation } = require('..
  *         description: Internal server error
  */
 
+/**
+ * @swagger
+ * /users/my-images:
+ *   get:
+ *     summary: Get all images uploaded by the current user
+ *     description: Retrieve paginated list of images uploaded by the authenticated user
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *         description: Number of images per page
+ *     responses:
+ *       200:
+ *         description: User's uploaded images retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     images:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                             format: uuid
+ *                             example: "a87f4e1a-d3b8-4f4f-9d62-5cbf78a7f9b9"
+ *                           uploader_id:
+ *                             type: string
+ *                             format: uuid
+ *                             example: "71c9e45f-56ab-4f7b-93d7-fb19841e2b2b"
+ *                           image_url:
+ *                             type: string
+ *                             example: "https://example.com/image.jpg"
+ *                           description:
+ *                             type: string
+ *                             example: "A beautiful landscape"
+ *                           safe_score:
+ *                             type: number
+ *                             format: float
+ *                             example: 0.95
+ *                           adult_level:
+ *                             type: string
+ *                             enum: [UNKNOWN, VERY_UNLIKELY, UNLIKELY, POSSIBLE, LIKELY, VERY_LIKELY]
+ *                             example: "VERY_UNLIKELY"
+ *                           violence_level:
+ *                             type: string
+ *                             enum: [UNKNOWN, VERY_UNLIKELY, UNLIKELY, POSSIBLE, LIKELY, VERY_LIKELY]
+ *                             example: "UNLIKELY"
+ *                           racy_level:
+ *                             type: string
+ *                             enum: [UNKNOWN, VERY_UNLIKELY, UNLIKELY, POSSIBLE, LIKELY, VERY_LIKELY]
+ *                             example: "UNLIKELY"
+ *                           categories:
+ *                             type: array
+ *                             items:
+ *                               type: string
+ *                             example: ["landscape", "nature"]
+ *                           created_at:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2023-01-01T00:00:00.000Z"
+ *                           total_views:
+ *                             type: integer
+ *                             example: 150
+ *                           total_likes:
+ *                             type: integer
+ *                             example: 25
+ *                           safe_search_status:
+ *                             type: string
+ *                             enum: [pending, processed, error]
+ *                             example: "processed"
+ *                           categorization_status:
+ *                             type: string
+ *                             enum: [pending, processed, error]
+ *                             example: "processed"
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         page:
+ *                           type: integer
+ *                           example: 1
+ *                         limit:
+ *                           type: integer
+ *                           example: 10
+ *                         total:
+ *                           type: integer
+ *                           example: 45
+ *                         totalPages:
+ *                           type: integer
+ *                           example: 5
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Internal server error
+ */
+
 // Public routes
 router.get('/categories', userController.getCategories);
 // Protected routes
 router.get('/profile', authenticate, userController.getUserProfile);
 router.put('/profile', authenticate, validate(updateProfileValidation), userController.updateProfile);
 router.post('/preferences', authenticate, validate(preferencesValidation), userController.setPreferences);
-
+router.get('/my-images', authenticate, userController.getUserUploadedImages);
 module.exports = router;

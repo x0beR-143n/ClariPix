@@ -3,10 +3,12 @@ import express from "express";
 import cors from "cors";
 import swaggerDocs from "./swagger.js";
 import { sequelize } from "./database/db.js";
+import { setupAssociations } from "./database/associations.js";
 import mainRouter from "./routes/main.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import imageRoutes from "./routes/image.routes.js";
 import userRoutes from "./routes/user.routes.js";
+import collectionRoutes from "./routes/collection.routes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import dotenv from "dotenv";
 dotenv.config();
@@ -26,6 +28,7 @@ app.use("/", mainRouter);
 app.use("/auth", authRoutes);
 app.use("/images", imageRoutes);
 app.use("/users", userRoutes);
+app.use('/collections', collectionRoutes);
 
 // Swagger (⚠️ thêm trước app.listen)
 swaggerDocs(app);
@@ -39,7 +42,9 @@ const startServer = async () => {
         await sequelize.authenticate();
         console.log("✅ Connected to PostgreSQL");
 
-        await sequelize.sync({});
+        setupAssociations();
+
+        await sequelize.sync({alter: true});
         console.log("✅ Models synced");
 
         app.listen(PORT, () => {

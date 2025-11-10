@@ -6,32 +6,11 @@
  */
 
 const express = require("express");
-const { body, validationResult, param, query} = require("express-validator");
 const imageController = require("../controllers/image.controller");
 const { authenticate } = require("../middleware/authenticate");
+const { validate, imageIdParamValidation, paginationValidation } = require("../middleware/validation.middleware");
 
 const router = express.Router();
-
-// Validation middleware
-const validate = (validations) => {
-    return async (req, res, next) => {
-        await Promise.all(validations.map((v) => v.run(req)));
-        const errors = validationResult(req);
-        if (errors.isEmpty()) return next();
-
-        res.status(400).json({
-            status: "error",
-            message: "Validation failed",
-            errors: errors.array(),
-        });
-    };
-};
-
-
-// Validation rules
-const uploadValidation = [
-    body("description").optional().isString(),
-];
 
 /**
  * @swagger
@@ -101,18 +80,9 @@ const uploadValidation = [
 router.post(
     "/upload",
     authenticate,
-    imageController.uploadMiddleware, // parse multipart/form-data
-    validate(uploadValidation),
+    imageController.uploadMiddleware,
     imageController.uploadImage
 );
-
-const deleteValidation = [
-    param('imageId')
-        .notEmpty()
-        .withMessage('imageId is required')
-        .isUUID()
-        .withMessage('imageId must be a valid UUID'),
-];
 
 /**
  * @swagger
@@ -150,7 +120,7 @@ const deleteValidation = [
 router.delete(
     "/:imageId",
     authenticate,
-    validate(deleteValidation),
+    validate(imageIdParamValidation),
     imageController.deleteImage
 );
 
@@ -182,14 +152,6 @@ router.post(
     authenticate,
     imageController.incrementViewCount
 )
-
-
-const paginationValidation = [
-    query('page').optional().isInt({ min: 1 }).withMessage('page must be an integer greater than 0'),
-    query('limit').optional().isInt({ min: 1 }).withMessage('limit must be an integer greater than 0'),
-    query('sorter').optional().isString().withMessage('sorter must be a string'),
-    query('order').optional().isIn(['ASC', 'DESC']).withMessage('order must be either ASC or DESC'),
-];
 
 /**
  * @swagger
@@ -258,14 +220,6 @@ router.get(
     imageController.getImagesWithPagination
 )
 
-const getImageByIdValidation = [
-    param('imageId')
-        .notEmpty()
-        .withMessage('imageId is required')
-        .isUUID()
-        .withMessage('imageId must be a valid UUID'),
-];
-
 /**
  * @swagger
  * /images/{imageId}:
@@ -308,7 +262,7 @@ const getImageByIdValidation = [
 
 router.get(
     "/:imageId",
-    validate(getImageByIdValidation),
+    validate(imageIdParamValidation),
     imageController.getImageById
 );
 

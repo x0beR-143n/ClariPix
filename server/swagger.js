@@ -16,6 +16,81 @@ const options = {
             },
         ],
         components: {
+            schemas: {
+                Image: {
+                    type: "object",
+                    properties: {
+                        id: {
+                            type: "string",
+                            format: "uuid",
+                            example: "a87f4e1a-d3b8-4f4f-9d62-5cbf78a7f9b9"
+                        },
+                        uploader_id: {
+                            type: "string",
+                            format: "uuid",
+                            example: "71c9e45f-56ab-4f7b-93d7-fb19841e2b2b"
+                        },
+                        image_url: {
+                            type: "string",
+                            example: "https://example.com/image.jpg"
+                        },
+                        description: {
+                            type: "string",
+                            example: "A beautiful landscape"
+                        },
+                        safe_score: {
+                            type: "number",
+                            format: "float",
+                            example: 0.95
+                        },
+                        adult_level: {
+                            type: "string",
+                            enum: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"],
+                            example: "VERY_UNLIKELY"
+                        },
+                        violence_level: {
+                            type: "string",
+                            enum: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"],
+                            example: "UNLIKELY"
+                        },
+                        racy_level: {
+                            type: "string",
+                            enum: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"],
+                            example: "UNLIKELY"
+                        },
+                        categories: {
+                            type: "array",
+                            items: {
+                                type: "string"
+                            },
+                            example: ["landscape", "nature"]
+                        },
+                        created_at: {
+                            type: "string",
+                            format: "date-time",
+                            example: "2023-01-01T00:00:00.000Z"
+                        },
+                        total_views: {
+                            type: "integer",
+                            example: 150
+                        },
+                        total_likes: {
+                            type: "integer",
+                            example: 25
+                        },
+                        safe_search_status: {
+                            type: "string",
+                            enum: ["pending", "processed", "error"],
+                            example: "processed"
+                        },
+                        categorization_status: {
+                            type: "string",
+                            enum: ["pending", "processed", "error"],
+                            example: "processed"
+                        }
+                    }
+                }
+            },
             securitySchemes: {
                 bearerAuth: {
                     type: "http",
@@ -24,8 +99,13 @@ const options = {
                 },
             },
         },
+        security: [
+            {
+                bearerAuth: [],
+            },
+        ],
     },
-    apis: ["./routes/*.js"], // nơi bạn viết mô tả endpoint bằng comment Swagger
+    apis: ["./routes/*.js"], // path to the API docs
 };
 
 const swaggerSpec = swaggerJsDoc(options);
