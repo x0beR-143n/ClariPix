@@ -49,12 +49,14 @@ export default function ImageUploadSection({ onImagesAdded }: ImageUploadSection
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`p-12 border-2 border-dashed cursor-pointer transition-all ${
-        isDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+      className={`p-12 border-2 border-dashed cursor-pointer transition-colors ${
+        isDragging
+          ? "border-primary bg-primary/10"
+          : "bg-muted/40 border-border hover:border-primary/40 hover:bg-muted/60"
       }`}
     >
       <div className="flex flex-col items-center justify-center text-center space-y-4">
-        <div className="p-4 bg-secondary rounded-full">
+        <div className="p-4 bg-primary/10 rounded-full">
           <Upload className="h-8 w-8 text-primary" />
         </div>
         <div>

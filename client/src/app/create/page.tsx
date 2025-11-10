@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Upload, Plus } from "lucide-react"
 import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import ImageUploadSection from "./components/image-upload-section"
 import CollectionForm from "./components/collection-form"
 import PreviewImages from "./components/preview-images"
@@ -12,6 +13,7 @@ type Tab = "upload" | "collection"
 export default function CreatePage() {
   const [activeTab, setActiveTab] = useState<Tab>("upload")
   const [uploadedImages, setUploadedImages] = useState<File[]>([])
+  const [isUploading, setIsUploading] = useState(false)
 
   const handleImagesAdded = (files: File[]) => {
     setUploadedImages((prev) => [...prev, ...files])
@@ -19,6 +21,55 @@ export default function CreatePage() {
 
   const removeImage = (index: number) => {
     setUploadedImages((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const handleUpload = async () => {
+    if (!uploadedImages.length || isUploading) return
+    setIsUploading(true)
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || ""
+      // Try common token keys; adjust to your auth storage if needed
+      const token =
+        typeof window !== "undefined"
+          ?
+            (localStorage.getItem("token") ||
+              localStorage.getItem("access_token") ||
+              localStorage.getItem("authToken") ||
+              "")
+          : ""
+
+      // Optional: enforce 10MB per image as hinted in Tips
+      const maxBytes = 10 * 1024 * 1024
+      const toUpload = uploadedImages.filter((f) => f.size <= maxBytes)
+      if (toUpload.length !== uploadedImages.length) {
+        console.warn("Some files exceed 10MB and were skipped.")
+      }
+
+      for (const file of toUpload) {
+        const form = new FormData()
+        form.append("image", file)
+        // form.append("description", "") // optionally send description
+
+        const headers: Record<string, string> = {}
+        if (token) headers["Authorization"] = `Bearer ${token}`
+
+        // If NEXT_PUBLIC_API_URL is not set, this will call relative path
+        const res = await fetch(`${baseUrl}/images/upload`, {
+          method: "POST",
+          headers,
+          body: form,
+        })
+
+        if (!res.ok) {
+          const text = await res.text()
+          console.error("Upload failed:", res.status, text)
+        }
+      }
+    } catch (err) {
+      console.error("Upload error:", err)
+    } finally {
+      setIsUploading(false)
+    }
   }
 
   return (
@@ -70,6 +121,17 @@ export default function CreatePage() {
                     </h2>
                     <PreviewImages images={uploadedImages} onRemove={removeImage} />
                   </Card>
+                )}
+
+                {uploadedImages.length > 0 && (
+                  <Button
+                    size="lg"
+                    className="w-full"
+                    disabled={isUploading}
+                    onClick={handleUpload}
+                  >
+                    {isUploading ? "Uploading..." : `Upload ${uploadedImages.length} Image${uploadedImages.length > 1 ? "s" : ""}`}
+                  </Button>
                 )}
               </div>
             )}
