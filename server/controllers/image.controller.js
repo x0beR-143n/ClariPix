@@ -5,9 +5,44 @@ const multer = require('multer'); // To handle image uploads
 // Configure multer for file uploads
 const upload = multer({ storage: multer.memoryStorage() });
 
-async function uploadImage(req, res) {
+async function uploadSingleImage(req, res) {
     try {
         if (!req.file) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                status: 'error',
+                message: 'No file was uploaded.'
+            });
+        }
+
+        const uploader_id = req.user.userId;
+        const { description } = req.body;
+
+        const { buffer, originalname, mimetype } = req.file;
+        const imageRecord = await imageService.createImageRecordInDB({
+            uploader_id,
+            fileBuffer: buffer,
+            originalName: originalname,
+            mimeType: mimetype,
+            description
+        });
+
+        res.status(StatusCodes.CREATED).json({
+            status: 'success',
+            message: 'Successfully uploaded 1 image',
+            data: imageRecord
+        });
+    } catch (error) {
+        console.error('Error in uploadSingleImage controller:', error);
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            status: 'error',
+            message: 'Failed to upload image. ' + error.message
+        });
+    }
+}
+
+async function uploadMultipleImages(req, res) {
+    try {
+        if (!req.files || req.files.length === 0) {
             return res.status(StatusCodes.BAD_REQUEST).json({
                 status: 'error',
                 message: 'No files were uploaded.'
@@ -17,7 +52,6 @@ async function uploadImage(req, res) {
         const uploader_id = req.user.userId;
         const { description } = req.body;
 
-        // Handle multiple file uploads
         const uploadPromises = req.files.map(file => {
             const { buffer, originalname, mimetype } = file;
             return imageService.createImageRecordInDB({
@@ -28,18 +62,8 @@ async function uploadImage(req, res) {
                 description
             });
         });
-        const imageRecords = await Promise.all(uploadPromises);
 
-        // Single file upload
-        // const { buffer, originalname, mimetype } = req.file;
-        //
-        // const imageRecord = await imageService.createImageRecordInDB({
-        //     uploader_id,
-        //     fileBuffer: buffer,
-        //     originalName: originalname,
-        //     mimeType: mimetype,
-        //     description
-        // });
+        const imageRecords = await Promise.all(uploadPromises);
 
         res.status(StatusCodes.CREATED).json({
             status: 'success',
@@ -47,7 +71,7 @@ async function uploadImage(req, res) {
             data: imageRecords
         });
     } catch (error) {
-        console.error('Error in uploadImage controller:', error);
+        console.error('Error in uploadMultipleImages controller:', error);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
             status: 'error',
             message: 'Failed to upload images. ' + error.message
@@ -145,12 +169,15 @@ async function getImageById(req, res) {
     }
 }
 
-const uploadMiddleware = upload.single('image', 10); // Order of middleware matters: first multer, then the controller
+const uploadSingleMiddleware = upload.single('image');
+const uploadMultipleMiddleware = upload.array('images', 10);
 
 module.exports = {
-    uploadImage,
-    uploadMiddleware,
+    uploadSingleImage,
+    uploadMultipleImages,
     deleteImage,
     getImagesWithPagination,
-    getImageById
+    getImageById,
+    uploadSingleMiddleware,
+    uploadMultipleMiddleware,
 };
