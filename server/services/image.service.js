@@ -98,14 +98,12 @@ async function incrementView(userId, imageId) {
         });
 
         if (created) {
-            const image = await Image.findByPk(imageId);
-            if (image) {
-                image.total_views += 1;
-                await image.save();
-            }
+            // Use atomic increment to avoid race conditions
+            await Image.increment('total_views', {
+                where: { id: imageId }
+            });
             return true;
         }
-
         return false;
     } catch (error) {
         console.error('Error adding view record:', error);
@@ -114,15 +112,31 @@ async function incrementView(userId, imageId) {
 }
 
 async function getImageById(imageId, userId = null) {
-    // First get the image
-    const image = await Image.findByPk(imageId);
+    try {
+        // First get the image
+        const image = await Image.findByPk(imageId);
 
-    if (image && userId) {
-        // Only increment view count for authenticated users
-        await incrementView(userId, imageId);
+        if (!image) {
+            return null;
+        }
+
+        // Increment view count if user is authenticated
+        if (userId) {
+            try {
+                await incrementView(userId, imageId);
+                // Refresh the image to get updated view count
+                await image.reload();
+            } catch (error) {
+                console.error('Error incrementing view:', error);
+                // Continue even if view increment fails
+            }
+        }
+
+        return image;
+    } catch (error) {
+        console.error('Error in getImageById service:', error);
+        throw error;
     }
-
-    return image;
 }
 
 async function getImagesWithPagination(page, limit, sorter, order) {

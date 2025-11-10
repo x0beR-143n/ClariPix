@@ -262,6 +262,7 @@ router.get(
 
 router.get(
     "/:imageId",
+    authenticate,
     validate(imageIdParamValidation),
     imageController.getImageById
 );
