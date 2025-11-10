@@ -15,29 +15,42 @@ async function uploadImage(req, res) {
         }
 
         const uploader_id = req.user.userId;
-
         const { description } = req.body;
-        // Single file upload
-        const { buffer, originalname, mimetype } = req.file;
 
-        const imageRecord = await imageService.createImageRecordInDB({
-            uploader_id,
-            fileBuffer: buffer,
-            originalName: originalname,
-            mimeType: mimetype,
-            description
+        // Handle multiple file uploads
+        const uploadPromises = req.files.map(file => {
+            const { buffer, originalname, mimetype } = file;
+            return imageService.createImageRecordInDB({
+                uploader_id,
+                fileBuffer: buffer,
+                originalName: originalname,
+                mimeType: mimetype,
+                description
+            });
         });
+        const imageRecords = await Promise.all(uploadPromises);
+
+        // Single file upload
+        // const { buffer, originalname, mimetype } = req.file;
+        //
+        // const imageRecord = await imageService.createImageRecordInDB({
+        //     uploader_id,
+        //     fileBuffer: buffer,
+        //     originalName: originalname,
+        //     mimeType: mimetype,
+        //     description
+        // });
 
         res.status(StatusCodes.CREATED).json({
             status: 'success',
-            message: 'Image uploaded successfully',
-            data: imageRecord
+            message: `Successfully uploaded ${imageRecords.length} image(s)`,
+            data: imageRecords
         });
     } catch (error) {
         console.error('Error in uploadImage controller:', error);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
             status: 'error',
-            message: 'Failed to upload image. ' + error.message
+            message: 'Failed to upload images. ' + error.message
         });
     }
 }
@@ -63,27 +76,27 @@ async function deleteImage(req, res) {
     }
 }
 
-async function incrementViewCount(req, res) {
-    try {
-        const { imageId } = req.params;
-        const userId = req.user.userId;
-
-        const result = await imageService.incrementView(userId, imageId);
-        let message = 'View count incremented successfully';
-        if (!result) {
-            message = 'Already viewed this. View count not incremented.';
-        }
-        res.status(StatusCodes.OK).json({
-            status: 'success',
-            message: message
-        });
-    } catch (error) {
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-            status: 'error',
-            message: 'Failed to increment view count. ' + error.message
-        });
-    }
-}
+// async function incrementViewCount(req, res) {
+//     try {
+//         const { imageId } = req.params;
+//         const userId = req.user.userId;
+//
+//         const result = await imageService.incrementView(userId, imageId);
+//         let message = 'View count incremented successfully';
+//         if (!result) {
+//             message = 'Already viewed this. View count not incremented.';
+//         }
+//         res.status(StatusCodes.OK).json({
+//             status: 'success',
+//             message: message
+//         });
+//     } catch (error) {
+//         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+//             status: 'error',
+//             message: 'Failed to increment view count. ' + error.message
+//         });
+//     }
+// }
 
 async function getImagesWithPagination(req, res) {
     try {
@@ -108,8 +121,11 @@ async function getImagesWithPagination(req, res) {
 async function getImageById(req, res) {
     try {
         const { imageId } = req.params;
+        const userId = req.user?.userId;
 
-        const image = await imageService.getImageById(imageId);
+        // Get image and increment view count
+        const image = await imageService.getImageById(imageId, userId);
+
         if (!image) {
             return res.status(StatusCodes.NOT_FOUND).json({
                 status: 'error',
@@ -129,13 +145,12 @@ async function getImageById(req, res) {
     }
 }
 
-const uploadMiddleware = upload.single('image'); // Order of middleware matters: first multer, then the controller
+const uploadMiddleware = upload.single('image', 10); // Order of middleware matters: first multer, then the controller
 
 module.exports = {
     uploadImage,
     uploadMiddleware,
     deleteImage,
-    incrementViewCount,
     getImagesWithPagination,
     getImageById
 };

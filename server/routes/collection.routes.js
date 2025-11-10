@@ -12,7 +12,8 @@ const {
     validate,
     createCollectionValidation,
     collectionIdValidation,
-    imageIdValidation, collectionImagesValidation
+    imageIdValidation, collectionImagesValidation,
+    multipleImageIdValidation,
 } = require("../middleware/validation.middleware");
 
 const router = express.Router();
@@ -300,7 +301,7 @@ router.post(
  * @swagger
  * /collections/{collectionId}/images:
  *   post:
- *     summary: Add an image to a collection
+ *     summary: Add one or multiple images to a collection
  *     tags: [Collections]
  *     security:
  *       - bearerAuth: []
@@ -318,15 +319,17 @@ router.post(
  *           schema:
  *             type: object
  *             required:
- *               - imageId
+ *               - imageIds
  *             properties:
- *               imageId:
- *                 type: string
- *                 format: uuid
- *                 example: "a87f4e1a-d3b8-4f4f-9d62-5cbf78a7f9b9"
+ *               imageIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: uuid
+ *                 example: ["a87f4e1a-d3b8-4f4f-9d62-5cbf78a7f9b9", "b98g5f2b-e4c9-5g5g-0e73-6dcg89b8g0ca"]
  *     responses:
  *       200:
- *         description: Image added to collection successfully
+ *         description: Images added to collection successfully
  *         content:
  *           application/json:
  *             schema:
@@ -337,20 +340,31 @@ router.post(
  *                   example: true
  *                 message:
  *                   type: string
- *                   example: "Image added to collection successfully"
+ *                   example: "Images added to collection successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     added:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                     errors:
+ *                       type: array
+ *                       items:
+ *                         type: string
  *       400:
- *         description: Validation error or image already in collection
+ *         description: Validation error or images already in collection
  *       401:
  *         description: Unauthorized
  *       404:
- *         description: Collection or image not found
+ *         description: Collection or images not found
  *       500:
  *         description: Internal server error
  */
 router.post(
     "/:collectionId/images",
     authenticate,
-    validate([...collectionIdValidation, ...imageIdValidation]),
+    validate([...collectionIdValidation, ...multipleImageIdValidation]),
     collectionController.addImageToCollection
 );
 

@@ -125,33 +125,33 @@ router.delete(
 );
 
 
-/**
- * @swagger
- * /images/{imageId}/view:
- *   post:
- *     summary: Tăng số lượt xem của ảnh
- *     tags: [Images]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: imageId
- *         required: true
- *         schema:
- *           type: string
- *         description: ID của ảnh
- *     responses:
- *       200:
- *         description: Lượt xem của ảnh đã được tăng
- *       400:
- *         description: Dữ liệu không hợp lệ
- */
-
-router.post(
-    "/:imageId/view",
-    authenticate,
-    imageController.incrementViewCount
-)
+// /**
+//  * @swagger
+//  * /images/{imageId}/view:
+//  *   post:
+//  *     summary: Tăng số lượt xem của ảnh
+//  *     tags: [Images]
+//  *     security:
+//  *       - bearerAuth: []
+//  *     parameters:
+//  *       - in: path
+//  *         name: imageId
+//  *         required: true
+//  *         schema:
+//  *           type: string
+//  *         description: ID của ảnh
+//  *     responses:
+//  *       200:
+//  *         description: Lượt xem của ảnh đã được tăng
+//  *       400:
+//  *         description: Dữ liệu không hợp lệ
+//  */
+//
+// router.post(
+//     "/:imageId/view",
+//     authenticate,
+//     imageController.incrementViewCount
+// )
 
 /**
  * @swagger

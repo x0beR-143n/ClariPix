@@ -88,19 +88,21 @@ async function deleteImageFromS3(userId, imageId) {
 
 async function incrementView(userId, imageId) {
     try {
-        // Check if the view record already exists. If not, create it and increment view count.
+        // Only increment view if user is authenticated
+        if (!userId) {
+            return false;
+        }
+
         const [viewRecord, created] = await ImageViewByUser.findOrCreate({
             where: { user_id: userId, image_id: imageId }
         });
 
         if (created) {
-            // Increment view count in Image model
             const image = await Image.findByPk(imageId);
             if (image) {
                 image.total_views += 1;
                 await image.save();
             }
-
             return true;
         }
 
@@ -111,6 +113,18 @@ async function incrementView(userId, imageId) {
     }
 }
 
+async function getImageById(imageId, userId = null) {
+    // First get the image
+    const image = await Image.findByPk(imageId);
+
+    if (image && userId) {
+        // Only increment view count for authenticated users
+        await incrementView(userId, imageId);
+    }
+
+    return image;
+}
+
 async function getImagesWithPagination(page, limit, sorter, order) {
     const offset = (page - 1) * limit;
     return await Image.findAll({
@@ -118,10 +132,6 @@ async function getImagesWithPagination(page, limit, sorter, order) {
         limit,
         order: [[sorter, order]],
     });
-}
-
-async function getImageById(imageId) {
-    return await Image.findByPk(imageId);
 }
 
 module.exports = {
