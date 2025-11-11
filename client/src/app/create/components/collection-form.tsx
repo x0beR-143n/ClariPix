@@ -6,8 +6,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
-import { X, Plus } from "lucide-react"
-import ImageSelector from "./image-selector"
+import { createCollection } from "@/api/collections"
 
 interface CollectionFormProps {
   uploadedImages?: File[]
@@ -16,48 +15,43 @@ interface CollectionFormProps {
 export default function CollectionForm({ uploadedImages = [] }: CollectionFormProps) {
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
-  const [tags, setTags] = useState<string[]>([])
-  const [tagInput, setTagInput] = useState("")
   const [isPublic, setIsPublic] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [selectedImages, setSelectedImages] = useState<number[]>([])
-
-  const handleAddTag = () => {
-    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
-      setTags([...tags, tagInput.trim()])
-      setTagInput("")
-    }
-  }
-
-  const handleRemoveTag = (tag: string) => {
-    setTags(tags.filter((t) => t !== tag))
-  }
+  const [notice, setNotice] = useState<{ type: "success" | "error"; text: string } | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-
-    console.log({
-      name,
-      description,
-      tags,
-      isPublic,
-      selectedImages: selectedImages.map((index) => uploadedImages[index]),
-    })
-
-    setTimeout(() => {
-      setIsSubmitting(false)
+    setNotice(null)
+    try {
+      const created = await createCollection({ name, description })
+      setNotice({ type: "success", text: "Tạo bộ sưu tập thành công" })
       setName("")
       setDescription("")
-      setTags([])
       setIsPublic(false)
-      setSelectedImages([])
-    }, 1000)
+    } catch (err: any) {
+      const message = err?.response?.data?.message || "Tạo bộ sưu tập thất bại"
+      setNotice({ type: "error", text: message })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
     <Card className="p-8">
       <form onSubmit={handleSubmit} className="space-y-6">
+        {notice && (
+          <div
+            role="alert"
+            className={`p-3 rounded-md text-sm ${
+              notice.type === "success"
+                ? "bg-green-100 text-green-800 border border-green-200"
+                : "bg-red-100 text-red-800 border border-red-200"
+            }`}
+          >
+            {notice.text}
+          </div>
+        )}
         <div>
           <label className="block text-sm font-medium text-foreground mb-2">Collection Name *</label>
           <Input
@@ -80,52 +74,7 @@ export default function CollectionForm({ uploadedImages = [] }: CollectionFormPr
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">Tags</label>
-          <div className="flex gap-2 mb-3">
-            <Input
-              placeholder="Add a tag and press enter..."
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault()
-                  handleAddTag()
-                }
-              }}
-            />
-            <Button type="button" onClick={handleAddTag} variant="outline" className="px-3 bg-transparent">
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {tags.map((tag) => (
-                <div
-                  key={tag}
-                  className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm"
-                >
-                  {tag}
-                  <button type="button" onClick={() => handleRemoveTag(tag)} className="hover:text-primary-foreground">
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-3">
-            Select Images {uploadedImages.length > 0 && "(Optional)"}
-          </label>
-          <ImageSelector
-            images={uploadedImages}
-            selectedImages={selectedImages}
-            onSelectionChange={setSelectedImages}
-          />
-        </div>
+        {/* Removed tag and image selection sections as requested */}
 
         <div className="flex items-center gap-3">
           <input

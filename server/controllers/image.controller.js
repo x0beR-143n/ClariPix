@@ -7,6 +7,41 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 async function uploadImage(req, res) {
     try {
+        const uploader_id = req.user.userId;
+        console.log('Uploader ID:', uploader_id);
+        const { description } = req.body;
+        let descriptionsArr = null;
+        if (req.body && req.body.descriptions) {
+            try {
+                const parsed = JSON.parse(req.body.descriptions);
+                if (Array.isArray(parsed)) descriptionsArr = parsed;
+            } catch (e) {
+                console.warn('Failed to parse descriptions JSON:', e?.message);
+            }
+        }
+
+        // If multiple files present
+        if (Array.isArray(req.files) && req.files.length) {
+            const results = await Promise.all(
+                req.files.map(({ buffer, originalname, mimetype }, idx) => {
+                    const perDesc = descriptionsArr?.[idx] ?? description;
+                    return imageService.createImageRecordInDB({
+                        uploader_id,
+                        fileBuffer: buffer,
+                        originalName: originalname,
+                        mimeType: mimetype,
+                        description: perDesc
+                    })
+                })
+            );
+            return res.status(StatusCodes.CREATED).json({
+                status: 'success',
+                message: `Successfully uploaded ${results.length} image(s)`,
+                data: results
+            });
+        }
+
+        // Fallback to single file
         if (!req.file) {
             return res.status(StatusCodes.BAD_REQUEST).json({
                 status: 'error',
@@ -14,43 +49,25 @@ async function uploadImage(req, res) {
             });
         }
 
-        const uploader_id = req.user.userId;
-        const { description } = req.body;
-
-        // Handle multiple file uploads
-        const uploadPromises = req.files.map(file => {
-            const { buffer, originalname, mimetype } = file;
-            return imageService.createImageRecordInDB({
-                uploader_id,
-                fileBuffer: buffer,
-                originalName: originalname,
-                mimeType: mimetype,
-                description
-            });
+        const { buffer, originalname, mimetype } = req.file;
+        const imageRecord = await imageService.createImageRecordInDB({
+            uploader_id,
+            fileBuffer: buffer,
+            originalName: originalname,
+            mimeType: mimetype,
+            description
         });
-        const imageRecords = await Promise.all(uploadPromises);
 
-        // Single file upload
-        // const { buffer, originalname, mimetype } = req.file;
-        //
-        // const imageRecord = await imageService.createImageRecordInDB({
-        //     uploader_id,
-        //     fileBuffer: buffer,
-        //     originalName: originalname,
-        //     mimeType: mimetype,
-        //     description
-        // });
-
-        res.status(StatusCodes.CREATED).json({
+        return res.status(StatusCodes.CREATED).json({
             status: 'success',
-            message: `Successfully uploaded ${imageRecords.length} image(s)`,
-            data: imageRecords
+            message: 'Image uploaded successfully',
+            data: imageRecord
         });
     } catch (error) {
         console.error('Error in uploadImage controller:', error);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
             status: 'error',
-            message: 'Failed to upload images. ' + error.message
+            message: 'Failed to upload image(s). ' + error.message
         });
     }
 }
@@ -145,11 +162,14 @@ async function getImageById(req, res) {
     }
 }
 
-const uploadMiddleware = upload.single('image', 10); // Order of middleware matters: first multer, then the controller
+// Middlewares for single vs multiple uploads
+const uploadMiddleware = upload.single('image');
+const uploadMultipleMiddleware = upload.array('images', 10); // up to 10 files per request
 
 module.exports = {
     uploadImage,
     uploadMiddleware,
+    uploadMultipleMiddleware,
     deleteImage,
     getImagesWithPagination,
     getImageById

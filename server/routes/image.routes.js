@@ -86,6 +86,45 @@ router.post(
 
 /**
  * @swagger
+ * /images/uploads:
+ *   post:
+ *     summary: Upload nhiều ảnh trong một request
+ *     tags: [Images]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - images
+ *             properties:
+ *               description:
+ *                 type: string
+ *                 example: Mô tả áp dụng chung (tuỳ chọn)
+ *               images:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *     responses:
+ *       201:
+ *         description: Upload thành công nhiều ảnh
+ *       400:
+ *         description: Thiếu file hoặc dữ liệu không hợp lệ
+ */
+
+router.post(
+    "/uploads",
+    authenticate,
+    imageController.uploadMultipleMiddleware,
+    imageController.uploadImage
+);
+
+/**
+ * @swagger
  * /images/{imageId}:
  *   delete:
  *     summary: Xóa ảnh người dùng theo ID
