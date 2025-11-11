@@ -16,7 +16,7 @@ const router = express.Router();
  * @swagger
  * /images/upload:
  *   post:
- *     summary: Upload ảnh mới của người dùng
+ *     summary: Upload một ảnh mới của người dùng
  *     tags: [Images]
  *     security:
  *       - bearerAuth: []
@@ -35,6 +35,7 @@ const router = express.Router();
  *               image:
  *                 type: string
  *                 format: binary
+ *                 description: Một ảnh duy nhất
  *     responses:
  *       201:
  *         description: Upload thành công
@@ -46,6 +47,9 @@ const router = express.Router();
  *                 status:
  *                   type: string
  *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Successfully uploaded 1 image
  *                 data:
  *                   type: object
  *                   properties:
@@ -80,8 +84,85 @@ const router = express.Router();
 router.post(
     "/upload",
     authenticate,
-    imageController.uploadMiddleware,
-    imageController.uploadImage
+    imageController.uploadSingleMiddleware,
+    imageController.uploadSingleImage
+);
+
+/**
+ * @swagger
+ * /images/upload-multiple:
+ *   post:
+ *     summary: Upload nhiều ảnh cùng lúc
+ *     tags: [Images]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - images
+ *             properties:
+ *               description:
+ *                 type: string
+ *                 example: Mô tả chung cho tất cả ảnh (tùy chọn)
+ *               images:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description: Danh sách ảnh (tối đa 10 ảnh)
+ *     responses:
+ *       201:
+ *         description: Upload thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Successfully uploaded 3 image(s)
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         example: a87f4e1a-d3b8-4f4f-9d62-5cbf78a7f9b9
+ *                       created_at:
+ *                         type: string
+ *                         example: 2025-11-03T10:15:30.000Z
+ *                       total_views:
+ *                         type: integer
+ *                         example: 0
+ *                       total_likes:
+ *                         type: integer
+ *                         example: 0
+ *                       uploader_id:
+ *                         type: string
+ *                         example: 71c9e45f-56ab-4f7b-93d7-fb19841e2b2b
+ *                       image_url:
+ *                         type: string
+ *                         example: https://claripix-uploads.s3.ap-southeast-1.amazonaws.com/uploads/2025/11/03/abc.jpg
+ *                       description:
+ *                         type: string
+ *                         example: Mô tả về ảnh (tùy chọn)
+ *       400:
+ *         description: Thiếu file hoặc dữ liệu không hợp lệ
+ */
+
+router.post(
+    "/upload-multiple",
+    authenticate,
+    imageController.uploadMultipleMiddleware,
+    imageController.uploadMultipleImages
 );
 
 /**
