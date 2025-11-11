@@ -12,83 +12,80 @@ const { validate, imageIdParamValidation, paginationValidation } = require("../m
 
 const router = express.Router();
 
-/**
- * @swagger
- * /images/upload:
- *   post:
- *     summary: Upload ảnh mới của người dùng
- *     tags: [Images]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             required:
- *               - image
- *             properties:
- *               description:
- *                 type: string
- *                 example: Mô tả về ảnh (tùy chọn)
- *               image:
- *                 type: string
- *                 format: binary
- *     responses:
- *       201:
- *         description: Upload thành công
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 data:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: string
- *                       example: a87f4e1a-d3b8-4f4f-9d62-5cbf78a7f9b9
- *                     created_at:
- *                       type: string
- *                       example: 2025-11-03T10:15:30.000Z
- *                     total_views:
- *                       type: integer
- *                       example: 0
- *                     total_likes:
- *                       type: integer
- *                       example: 0
- *                     status:
- *                       type: string
- *                       example: pending
- *                     uploader_id:
- *                       type: string
- *                       example: 71c9e45f-56ab-4f7b-93d7-fb19841e2b2b
- *                     image_url:
- *                       type: string
- *                       example: https://claripix-uploads.s3.ap-southeast-1.amazonaws.com/uploads/2025/11/03/abc.jpg
- *                     description:
- *                       type: string
- *                       example: Mô tả về ảnh (tùy chọn)
- *       400:
- *         description: Thiếu file hoặc dữ liệu không hợp lệ
- */
-
-router.post(
-    "/upload",
-    authenticate,
-    imageController.uploadMiddleware,
-    imageController.uploadImage
-);
+// /**
+//  * @swagger
+//  * /images/upload:
+//  *   post:
+//  *     summary: Upload ảnh mới của người dùng
+//  *     tags: [Images]
+//  *     security:
+//  *       - bearerAuth: []
+//  *     requestBody:
+//  *       required: true
+//  *       content:
+//  *         multipart/form-data:
+//  *           schema:
+//  *             type: object
+//  *             required:
+//  *               - image
+//  *             properties:
+//  *               image:
+//  *                 type: string
+//  *                 format: binary
+//  *     responses:
+//  *       201:
+//  *         description: Upload thành công
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: object
+//  *               properties:
+//  *                 status:
+//  *                   type: string
+//  *                   example: success
+//  *                 data:
+//  *                   type: object
+//  *                   properties:
+//  *                     id:
+//  *                       type: string
+//  *                       example: a87f4e1a-d3b8-4f4f-9d62-5cbf78a7f9b9
+//  *                     created_at:
+//  *                       type: string
+//  *                       example: 2025-11-03T10:15:30.000Z
+//  *                     total_views:
+//  *                       type: integer
+//  *                       example: 0
+//  *                     total_likes:
+//  *                       type: integer
+//  *                       example: 0
+//  *                     status:
+//  *                       type: string
+//  *                       example: pending
+//  *                     uploader_id:
+//  *                       type: string
+//  *                       example: 71c9e45f-56ab-4f7b-93d7-fb19841e2b2b
+//  *                     image_url:
+//  *                       type: string
+//  *                       example: https://claripix-uploads.s3.ap-southeast-1.amazonaws.com/uploads/2025/11/03/abc.jpg
+//  *                     description:
+//  *                       type: string
+//  *                       example: ""
+//  *       400:
+//  *         description: Thiếu file hoặc dữ liệu không hợp lệ
+//  */
+//
+// router.post(
+//     "/upload",
+//     authenticate,
+//     imageController.uploadMiddleware,
+//     imageController.uploadImage
+// );
 
 /**
  * @swagger
  * /images/uploads:
  *   post:
- *     summary: Upload nhiều ảnh trong một request
+ *     summary: Upload một hoặc nhiều ảnh trong một request
  *     tags: [Images]
  *     security:
  *       - bearerAuth: []
@@ -101,9 +98,13 @@ router.post(
  *             required:
  *               - images
  *             properties:
- *               description:
+ *               descriptions:
  *                 type: string
- *                 example: Mô tả áp dụng chung (tuỳ chọn)
+ *                 description: |
+ *                   Có thể là:
+ *                   - JSON array: ["Mô tả 1", "Mô tả 2"]
+ *                   - String thông thường: "mô tả 1, mô tả 2" (sẽ được tách bằng dấu phẩy)
+ *                 example: 'trekka, anh 2 ne'
  *               images:
  *                 type: array
  *                 items:
@@ -111,7 +112,35 @@ router.post(
  *                   format: binary
  *     responses:
  *       201:
- *         description: Upload thành công nhiều ảnh
+ *         description: Upload thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Successfully uploaded 2 image(s)
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         example: a87f4e1a-d3b8-4f4f-9d62-5cbf78a7f9b9
+ *                       uploader_id:
+ *                         type: string
+ *                         example: 71c9e45f-56ab-4f7b-93d7-fb19841e2b2b
+ *                       image_url:
+ *                         type: string
+ *                         example: https://claripix-uploads.s3.ap-southeast-1.amazonaws.com/uploads/2025/11/03/abc.jpg
+ *                       description:
+ *                         type: string
+ *                         example: "trekka"
  *       400:
  *         description: Thiếu file hoặc dữ liệu không hợp lệ
  */
@@ -301,7 +330,6 @@ router.get(
 
 router.get(
     "/:imageId",
-    authenticate,
     validate(imageIdParamValidation),
     imageController.getImageById
 );

@@ -9,59 +9,69 @@ async function uploadImage(req, res) {
     try {
         const uploader_id = req.user.userId;
         console.log('Uploader ID:', uploader_id);
-        const { description } = req.body;
-        let descriptionsArr = null;
+
+        // Xử lý descriptions cho nhiều ảnh - FIX: xử lý đúng cách
+        let descriptionsArr = [];
         if (req.body && req.body.descriptions) {
             try {
-                const parsed = JSON.parse(req.body.descriptions);
-                if (Array.isArray(parsed)) descriptionsArr = parsed;
+                // Thử parse như JSON trước
+                if (typeof req.body.descriptions === 'string') {
+                    // Loại bỏ khoảng trắng thừa và thử parse JSON
+                    const trimmed = req.body.descriptions.trim();
+
+                    // Kiểm tra nếu bắt đầu bằng [ và kết thúc bằng ] thì là JSON array
+                    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+                        const parsed = JSON.parse(trimmed);
+                        if (Array.isArray(parsed)) {
+                            descriptionsArr = parsed;
+                        } else {
+                            descriptionsArr = [parsed];
+                        }
+                    } else {
+                        // Nếu không phải JSON array, split bằng dấu phẩy
+                        descriptionsArr = trimmed.split(',').map(desc => desc.trim());
+                    }
+                }
+                // Nếu descriptions đã là array (trường hợp hiếm)
+                else if (Array.isArray(req.body.descriptions)) {
+                    descriptionsArr = req.body.descriptions;
+                }
             } catch (e) {
-                console.warn('Failed to parse descriptions JSON:', e?.message);
+                console.warn('Failed to parse descriptions, splitting by comma:', e?.message);
+                // Nếu parse thất bại, split bằng dấu phẩy
+                descriptionsArr = req.body.descriptions.split(',').map(desc => desc.trim());
             }
         }
 
-        // If multiple files present
-        if (Array.isArray(req.files) && req.files.length) {
-            const results = await Promise.all(
-                req.files.map(({ buffer, originalname, mimetype }, idx) => {
-                    const perDesc = descriptionsArr?.[idx] ?? description;
-                    return imageService.createImageRecordInDB({
-                        uploader_id,
-                        fileBuffer: buffer,
-                        originalName: originalname,
-                        mimeType: mimetype,
-                        description: perDesc
-                    })
-                })
-            );
-            return res.status(StatusCodes.CREATED).json({
-                status: 'success',
-                message: `Successfully uploaded ${results.length} image(s)`,
-                data: results
-            });
-        }
+        console.log('Processed descriptions:', descriptionsArr);
 
-        // Fallback to single file
-        if (!req.file) {
+        // Chỉ xử lý multiple files
+        if (!req.files || req.files.length === 0) {
             return res.status(StatusCodes.BAD_REQUEST).json({
                 status: 'error',
                 message: 'No files were uploaded.'
             });
         }
 
-        const { buffer, originalname, mimetype } = req.file;
-        const imageRecord = await imageService.createImageRecordInDB({
-            uploader_id,
-            fileBuffer: buffer,
-            originalName: originalname,
-            mimeType: mimetype,
-            description
-        });
+        const results = await Promise.all(
+            req.files.map(({ buffer, originalname, mimetype }, idx) => {
+                // Lấy description tương ứng cho từng ảnh
+                const perDesc = descriptionsArr[idx] || '';
+
+                return imageService.createImageRecordInDB({
+                    uploader_id,
+                    fileBuffer: buffer,
+                    originalName: originalname,
+                    mimeType: mimetype,
+                    description: perDesc
+                });
+            })
+        );
 
         return res.status(StatusCodes.CREATED).json({
             status: 'success',
-            message: 'Image uploaded successfully',
-            data: imageRecord
+            message: `Successfully uploaded ${results.length} image(s)`,
+            data: results
         });
     } catch (error) {
         console.error('Error in uploadImage controller:', error);
@@ -138,9 +148,9 @@ async function getImagesWithPagination(req, res) {
 async function getImageById(req, res) {
     try {
         const { imageId } = req.params;
-        const userId = req.user?.userId;
+        const userId = req.user?.userId; // Có thể undefined nếu không đăng nhập
 
-        // Get image and increment view count
+        // Get image và chỉ tăng view count nếu user đã đăng nhập
         const image = await imageService.getImageById(imageId, userId);
 
         if (!image) {
