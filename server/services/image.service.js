@@ -120,7 +120,7 @@ async function getImageById(imageId, userId = null) {
             return null;
         }
 
-        // Increment view count if user is authenticated
+        // Chỉ tăng view count nếu user đã đăng nhập (userId không null)
         if (userId) {
             try {
                 await incrementView(userId, imageId);

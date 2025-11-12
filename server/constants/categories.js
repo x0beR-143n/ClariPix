@@ -1,11 +1,19 @@
 const AVAILABLE_CATEGORIES = [
-    'animals', 'sports', 'movies', 'street', 'nature',
-    'architecture', 'food', 'travel', 'technology', 'art',
-    'fashion', 'vehicles', 'flowers', 'portrait', 'landscape',
-    'city', 'sea', 'mountains', 'space', 'abstract', 'science',
-    'music', 'history', 'culture', 'festival', 'nightlife',
-    'vintage', 'black and white', 'macro', 'pets', 'wildlife',
-    'action', 'horror', 'romance', 'animation', 'documentary',
+    "Travel",
+    "Food",
+    "Art",
+    "Nature",
+    "Technology",
+    "Fashion",
+    "Fitness",
+    "Sports",
+    "Animals",
+    "Music",
+    "DIY",
+    "Home Decor",
+    "Cars",
+    "Gaming",
+    "Education",
 ];
 
 module.exports = { AVAILABLE_CATEGORIES };
