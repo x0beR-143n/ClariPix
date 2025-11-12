@@ -1,23 +1,16 @@
 "use client"
 
-import { useState } from "react"
 import { X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 
 interface PreviewImagesProps {
   images: File[]
+  descriptions: Record<number, string>
+  onDescriptionChange: (index: number, value: string) => void
   onRemove: (index: number) => void
 }
 
-export default function PreviewImages({ images, onRemove }: PreviewImagesProps) {
-  const [descriptions, setDescriptions] = useState<Record<number, string>>({})
-
-  const handleDescriptionChange = (index: number, value: string) => {
-    setDescriptions((prev) => ({
-      ...prev,
-      [index]: value,
-    }))
-  }
+export default function PreviewImages({ images, descriptions, onDescriptionChange, onRemove }: PreviewImagesProps) {
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -44,7 +37,7 @@ export default function PreviewImages({ images, onRemove }: PreviewImagesProps) 
               <Input
                 placeholder="Add description..."
                 value={descriptions[index] || ""}
-                onChange={(e) => handleDescriptionChange(index, e.target.value)}
+                onChange={(e) => onDescriptionChange(index, e.target.value)}
                 className="text-xs h-8"
               />
             </div>

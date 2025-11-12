@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import ImageUploadSection from "./components/image-upload-section"
 import CollectionForm from "./components/collection-form"
 import PreviewImages from "./components/preview-images"
+import { uploadMultipleImages, type UploadedImage } from "@/api/images"
+import { toast } from "sonner"
 
 type Tab = "upload" | "collection"
 
@@ -14,6 +16,8 @@ export default function CreatePage() {
   const [activeTab, setActiveTab] = useState<Tab>("upload")
   const [uploadedImages, setUploadedImages] = useState<File[]>([])
   const [isUploading, setIsUploading] = useState(false)
+  const [uploadedServerImages, setUploadedServerImages] = useState<UploadedImage[]>([])
+  const [descriptions, setDescriptions] = useState<Record<number, string>>({})
 
   const handleImagesAdded = (files: File[]) => {
     setUploadedImages((prev) => [...prev, ...files])
@@ -21,52 +25,42 @@ export default function CreatePage() {
 
   const removeImage = (index: number) => {
     setUploadedImages((prev) => prev.filter((_, i) => i !== index))
+    // Shift descriptions to keep indexes aligned
+    setDescriptions((prev) => {
+      const next: Record<number, string> = {}
+      Object.entries(prev).forEach(([k, v]) => {
+        const i = Number(k)
+        if (i < index) next[i] = v
+        if (i > index) next[i - 1] = v
+      })
+      return next
+    })
   }
 
   const handleUpload = async () => {
     if (!uploadedImages.length || isUploading) return
     setIsUploading(true)
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || ""
-      // Try common token keys; adjust to your auth storage if needed
-      const token =
-        typeof window !== "undefined"
-          ?
-            (localStorage.getItem("token") ||
-              localStorage.getItem("access_token") ||
-              localStorage.getItem("authToken") ||
-              "")
-          : ""
-
-      // Optional: enforce 10MB per image as hinted in Tips
       const maxBytes = 10 * 1024 * 1024
       const toUpload = uploadedImages.filter((f) => f.size <= maxBytes)
       if (toUpload.length !== uploadedImages.length) {
         console.warn("Some files exceed 10MB and were skipped.")
       }
 
-      for (const file of toUpload) {
-        const form = new FormData()
-        form.append("image", file)
-        // form.append("description", "") // optionally send description
+      // Build descriptions array aligned with toUpload order
+      const descs = toUpload.map((file) => {
+        const idx = uploadedImages.indexOf(file)
+        return descriptions[idx] || ""
+      })
 
-        const headers: Record<string, string> = {}
-        if (token) headers["Authorization"] = `Bearer ${token}`
-
-        // If NEXT_PUBLIC_API_URL is not set, this will call relative path
-        const res = await fetch(`${baseUrl}/images/upload`, {
-          method: "POST",
-          headers,
-          body: form,
-        })
-
-        if (!res.ok) {
-          const text = await res.text()
-          console.error("Upload failed:", res.status, text)
-        }
-      }
+      const results = await uploadMultipleImages(toUpload, descs)
+      setUploadedServerImages((prev) => [...prev, ...results])
+      toast.success("Thành công", { description: `Đã upload ${results.length} ảnh` })
+      // Optionally clear local files after successful upload
+      // setUploadedImages([])
     } catch (err) {
       console.error("Upload error:", err)
+      toast.error("Thất bại", { description: "Upload thất bại" })
     } finally {
       setIsUploading(false)
     }
@@ -119,7 +113,14 @@ export default function CreatePage() {
                     <h2 className="text-lg font-semibold text-foreground mb-4">
                       Preview ({uploadedImages.length} images)
                     </h2>
-                    <PreviewImages images={uploadedImages} onRemove={removeImage} />
+                    <PreviewImages
+                      images={uploadedImages}
+                      descriptions={descriptions}
+                      onDescriptionChange={(i, val) =>
+                        setDescriptions((prev) => ({ ...prev, [i]: val }))
+                      }
+                      onRemove={removeImage}
+                    />
                   </Card>
                 )}
 

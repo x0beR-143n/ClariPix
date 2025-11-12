@@ -7,7 +7,46 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 async function uploadSingleImage(req, res) {
     try {
-        if (!req.file) {
+        const uploader_id = req.user.userId;
+        console.log('Uploader ID:', uploader_id);
+
+        // Xử lý descriptions cho nhiều ảnh - FIX: xử lý đúng cách
+        let descriptionsArr = [];
+        if (req.body && req.body.descriptions) {
+            try {
+                // Thử parse như JSON trước
+                if (typeof req.body.descriptions === 'string') {
+                    // Loại bỏ khoảng trắng thừa và thử parse JSON
+                    const trimmed = req.body.descriptions.trim();
+
+                    // Kiểm tra nếu bắt đầu bằng [ và kết thúc bằng ] thì là JSON array
+                    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+                        const parsed = JSON.parse(trimmed);
+                        if (Array.isArray(parsed)) {
+                            descriptionsArr = parsed;
+                        } else {
+                            descriptionsArr = [parsed];
+                        }
+                    } else {
+                        // Nếu không phải JSON array, split bằng dấu phẩy
+                        descriptionsArr = trimmed.split(',').map(desc => desc.trim());
+                    }
+                }
+                // Nếu descriptions đã là array (trường hợp hiếm)
+                else if (Array.isArray(req.body.descriptions)) {
+                    descriptionsArr = req.body.descriptions;
+                }
+            } catch (e) {
+                console.warn('Failed to parse descriptions, splitting by comma:', e?.message);
+                // Nếu parse thất bại, split bằng dấu phẩy
+                descriptionsArr = req.body.descriptions.split(',').map(desc => desc.trim());
+            }
+        }
+
+        console.log('Processed descriptions:', descriptionsArr);
+
+        // Chỉ xử lý multiple files
+        if (!req.files || req.files.length === 0) {
             return res.status(StatusCodes.BAD_REQUEST).json({
                 status: 'error',
                 message: 'No file was uploaded.'
@@ -49,32 +88,31 @@ async function uploadMultipleImages(req, res) {
             });
         }
 
-        const uploader_id = req.user.userId;
-        const { description } = req.body;
+        const results = await Promise.all(
+            req.files.map(({ buffer, originalname, mimetype }, idx) => {
+                // Lấy description tương ứng cho từng ảnh
+                const perDesc = descriptionsArr[idx] || '';
 
-        const uploadPromises = req.files.map(file => {
-            const { buffer, originalname, mimetype } = file;
-            return imageService.createImageRecordInDB({
-                uploader_id,
-                fileBuffer: buffer,
-                originalName: originalname,
-                mimeType: mimetype,
-                description
-            });
-        });
+                return imageService.createImageRecordInDB({
+                    uploader_id,
+                    fileBuffer: buffer,
+                    originalName: originalname,
+                    mimeType: mimetype,
+                    description: perDesc
+                });
+            })
+        );
 
-        const imageRecords = await Promise.all(uploadPromises);
-
-        res.status(StatusCodes.CREATED).json({
+        return res.status(StatusCodes.CREATED).json({
             status: 'success',
-            message: `Successfully uploaded ${imageRecords.length} image(s)`,
-            data: imageRecords
+            message: `Successfully uploaded ${results.length} image(s)`,
+            data: results
         });
     } catch (error) {
         console.error('Error in uploadMultipleImages controller:', error);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
             status: 'error',
-            message: 'Failed to upload images. ' + error.message
+            message: 'Failed to upload image(s). ' + error.message
         });
     }
 }
@@ -145,9 +183,9 @@ async function getImagesWithPagination(req, res) {
 async function getImageById(req, res) {
     try {
         const { imageId } = req.params;
-        const userId = req.user?.userId;
+        const userId = req.user?.userId; // Có thể undefined nếu không đăng nhập
 
-        // Get image and increment view count
+        // Get image và chỉ tăng view count nếu user đã đăng nhập
         const image = await imageService.getImageById(imageId, userId);
 
         if (!image) {
@@ -169,15 +207,15 @@ async function getImageById(req, res) {
     }
 }
 
-const uploadSingleMiddleware = upload.single('image');
-const uploadMultipleMiddleware = upload.array('images', 10);
+// Middlewares for single vs multiple uploads
+const uploadMiddleware = upload.single('image');
+const uploadMultipleMiddleware = upload.array('images', 10); // up to 10 files per request
 
 module.exports = {
-    uploadSingleImage,
-    uploadMultipleImages,
+    uploadImage,
+    uploadMiddleware,
+    uploadMultipleMiddleware,
     deleteImage,
     getImagesWithPagination,
-    getImageById,
-    uploadSingleMiddleware,
-    uploadMultipleMiddleware,
+    getImageById
 };
