@@ -149,7 +149,7 @@ router.post(
     "/uploads",
     authenticate,
     imageController.uploadMultipleMiddleware,
-    imageController.uploadImage
+    imageController.uploadMultipleImages
 );
 
 /**

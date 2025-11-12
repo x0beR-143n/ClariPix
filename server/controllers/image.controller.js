@@ -53,7 +53,7 @@ async function uploadSingleImage(req, res) {
             });
         }
 
-        const uploader_id = req.user.userId;
+        // const uploader_id = req.user.userId;
         const { description } = req.body;
 
         const { buffer, originalname, mimetype } = req.file;
@@ -212,7 +212,7 @@ const uploadMiddleware = upload.single('image');
 const uploadMultipleMiddleware = upload.array('images', 10); // up to 10 files per request
 
 module.exports = {
-    uploadImage,
+    uploadMultipleImages,
     uploadMiddleware,
     uploadMultipleMiddleware,
     deleteImage,
