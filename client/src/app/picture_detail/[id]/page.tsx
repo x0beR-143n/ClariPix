@@ -10,7 +10,8 @@ import PictureStats from "../../../components/picture_detail/PictureStats";
 import PictureDescription from "../../../components/picture_detail/PictureDescription";
 import PictureCategories from "../../../components/picture_detail/PictureCategories";
 import PictureMetadata from "../../../components/picture_detail/PictureMetadata";
-import { getMockPictureData } from "../../../components/picture_detail/mockData";
+import { getMockPictureData, getMockRelatedImages } from "../../../components/picture_detail/mockData";
+import MasonryGallery from "../../../components/home/MasonryImageDisplay";
 
 export default function PictureDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -18,6 +19,7 @@ export default function PictureDetailPage({ params }: { params: Promise<{ id: st
   const [isLiked, setIsLiked] = useState(pictureData.is_liked);
   const [isSaved, setIsSaved] = useState(pictureData.is_saved);
   const [likeCount, setLikeCount] = useState(pictureData.total_likes);
+  const [relatedImages] = useState<string[]>(getMockRelatedImages(pictureData.categories));
 
   const handleLike = () => {
     setIsLiked(!isLiked);
@@ -66,6 +68,12 @@ export default function PictureDetailPage({ params }: { params: Promise<{ id: st
               <PictureCategories categories={pictureData.categories} />
               <PictureMetadata created_at={pictureData.created_at} />
             </div>
+          </div>
+
+          {/* Related images */}
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold text-zinc-900 mb-6">Related images</h2>
+            <MasonryGallery images={relatedImages} />
           </div>
         </div>
       </div>
