@@ -5,7 +5,7 @@ const multer = require('multer'); // To handle image uploads
 // Configure multer for file uploads
 const upload = multer({ storage: multer.memoryStorage() });
 
-async function uploadImage(req, res) {
+async function uploadSingleImage(req, res) {
     try {
         const uploader_id = req.user.userId;
         console.log('Uploader ID:', uploader_id);
@@ -49,6 +49,41 @@ async function uploadImage(req, res) {
         if (!req.files || req.files.length === 0) {
             return res.status(StatusCodes.BAD_REQUEST).json({
                 status: 'error',
+                message: 'No file was uploaded.'
+            });
+        }
+
+        const uploader_id = req.user.userId;
+        const { description } = req.body;
+
+        const { buffer, originalname, mimetype } = req.file;
+        const imageRecord = await imageService.createImageRecordInDB({
+            uploader_id,
+            fileBuffer: buffer,
+            originalName: originalname,
+            mimeType: mimetype,
+            description
+        });
+
+        res.status(StatusCodes.CREATED).json({
+            status: 'success',
+            message: 'Successfully uploaded 1 image',
+            data: imageRecord
+        });
+    } catch (error) {
+        console.error('Error in uploadSingleImage controller:', error);
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            status: 'error',
+            message: 'Failed to upload image. ' + error.message
+        });
+    }
+}
+
+async function uploadMultipleImages(req, res) {
+    try {
+        if (!req.files || req.files.length === 0) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                status: 'error',
                 message: 'No files were uploaded.'
             });
         }
@@ -74,7 +109,7 @@ async function uploadImage(req, res) {
             data: results
         });
     } catch (error) {
-        console.error('Error in uploadImage controller:', error);
+        console.error('Error in uploadMultipleImages controller:', error);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
             status: 'error',
             message: 'Failed to upload image(s). ' + error.message
