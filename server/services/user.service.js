@@ -202,6 +202,33 @@ async function updateUserProfile(userId, profileData) {
     }
 }
 
+async function getUserUploadedImagesWithoutPagination(userId) {
+    try {
+        const images = await Image.findAll({
+            where: { uploader_id: userId },
+            order: [['created_at', 'DESC']],
+            include: [{
+                model: User,
+                as: 'uploader',
+                attributes: ['id', 'name', 'avatar_url']
+            }]
+        });
+
+        return {
+            images,
+            pagination: {
+                page: 1,
+                limit: images.length,
+                total: images.length,
+                totalPages: 1
+            }
+        };
+    } catch (error) {
+        console.error('Error getting user uploaded images without pagination:', error);
+        throw error;
+    }
+}
+
 async function getAvailableCategories() {
     return AVAILABLE_CATEGORIES;
 }
@@ -247,6 +274,7 @@ module.exports = {
     setUserPreferences,
     getUserById,
     updateUserProfile,
+    getUserUploadedImagesWithoutPagination,
     getAvailableCategories,
     getUserUploadedImages
 };
