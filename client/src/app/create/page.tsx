@@ -8,6 +8,7 @@ import ImageUploadSection from "./components/image-upload-section"
 import CollectionForm from "./components/collection-form"
 import PreviewImages from "./components/preview-images"
 import { uploadMultipleImages, type UploadedImage } from "@/api/images"
+import { toast } from "sonner"
 
 type Tab = "upload" | "collection"
 
@@ -54,10 +55,12 @@ export default function CreatePage() {
 
       const results = await uploadMultipleImages(toUpload, descs)
       setUploadedServerImages((prev) => [...prev, ...results])
+      toast.success("Thành công", { description: `Đã upload ${results.length} ảnh` })
       // Optionally clear local files after successful upload
       // setUploadedImages([])
     } catch (err) {
       console.error("Upload error:", err)
+      toast.error("Thất bại", { description: "Upload thất bại" })
     } finally {
       setIsUploading(false)
     }
