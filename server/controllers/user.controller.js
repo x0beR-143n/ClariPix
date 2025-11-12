@@ -1,4 +1,5 @@
 const userService = require('../services/user.service');
+const collectionService = require('../services/collection.service');
 const {StatusCodes} = require("http-status-codes");
 
 async function setPreferences(req, res, next) {
@@ -19,9 +20,20 @@ async function setPreferences(req, res, next) {
 async function getUserProfile(req, res, next) {
     try {
         const user = await userService.getUserById(req.user.userId);
+
+        // Lấy danh sách ảnh gần đây (không phân trang)
+        const imagesResult = await userService.getUserUploadedImages(req.user.userId, 1, 1000);
+
+        // Lấy danh sách collections (không phân trang)
+        const collections = await collectionService.getUserCollections(req.user.userId);
+
         res.status(StatusCodes.OK).json({
             success: true,
-            data: user
+            data: {
+                ...user.toJSON(),
+                recent_images: imagesResult.images,
+                collections: collections
+            }
         });
     } catch (error) {
         next(error);
