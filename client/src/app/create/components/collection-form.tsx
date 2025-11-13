@@ -10,9 +10,10 @@ import { toast } from "sonner"
 
 interface CollectionFormProps {
   uploadedImages?: File[]
+  onCreated?: (collectionId: string) => void
 }
 
-export default function CollectionForm({ uploadedImages = [] }: CollectionFormProps) {
+export default function CollectionForm({ uploadedImages = [], onCreated }: CollectionFormProps) {
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [isPublic, setIsPublic] = useState(false)
@@ -22,8 +23,10 @@ export default function CollectionForm({ uploadedImages = [] }: CollectionFormPr
     e.preventDefault()
     setIsSubmitting(true)
     try {
-      await createCollection({ name, description })
+      const created = await createCollection({ name, description })
       toast.success("Thành công", { description: "Tạo bộ sưu tập thành công" })
+      // inform parent to open selection screen
+      try { if (typeof window !== 'undefined') onCreated?.(created.id) } catch {}
       setName("")
       setDescription("")
       setIsPublic(false)
@@ -75,7 +78,7 @@ export default function CollectionForm({ uploadedImages = [] }: CollectionFormPr
           </label>
         </div>
 
-        <Button type="submit" disabled={!name.trim() || isSubmitting} className="w-full" size="lg">
+        <Button type="submit" disabled={!name.trim() || isSubmitting} className="w-full bg-red-600 text-white hover:bg-red-700" size="lg">
           {isSubmitting ? "Creating..." : "Create Collection"}
         </Button>
       </form>
