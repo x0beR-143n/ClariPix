@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { CircleFadingPlus, Compass, House, LucideIcon, Settings, UserRound } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useAuthStore } from '../../store/authStore'
 
 type Item = {
   href: string
@@ -26,11 +27,16 @@ const BOTTOM_ITEMS: Item[] = [
 
 export default function AppSideBar() {
   const pathname = usePathname()
+  const { isLogin } = useAuthStore()
 
   const isActive = (item: Item) => {
     if (item.exact) return pathname === item.href
     return pathname === item.href || pathname.startsWith(item.href + '/')
   }
+
+  const visibleTopItems = isLogin
+    ? TOP_ITEMS
+    : TOP_ITEMS.filter((item) => item.href !== '/profile')
 
   return (
     <aside className="h-screen w-24 bg-zinc-100 border-r border-r-zinc-200 py-6 flex flex-col items-center justify-between">
@@ -43,7 +49,7 @@ export default function AppSideBar() {
         </Link>
 
         {/* top items */}
-        {TOP_ITEMS.map((item) => {
+        {visibleTopItems.map((item) => {
           const Icon = item.icon
           const active = isActive(item)
           return (

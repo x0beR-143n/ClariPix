@@ -10,7 +10,6 @@ type ProfileTabsProps = {
 
 const TABS = [
   { key: "uploaded", label: "Uploaded" },
-  { key: "saved", label: "Saved" },
   { key: "collections", label: "Collections" },
 ] as const;
 
@@ -21,7 +20,6 @@ export default function ProfileTabs({ profileData }: ProfileTabsProps) {
 
   const getImages = () => {
     if (active === "uploaded") return profileData.uploaded;
-    if (active === "saved") return profileData.saved;
     return profileData.collections; // mock as cover images
   };
 
