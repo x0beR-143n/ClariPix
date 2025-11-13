@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import ImageUploadSection from "./components/image-upload-section"
 import CollectionForm from "./components/collection-form"
 import PreviewImages from "./components/preview-images"
+import SelectMyImages from "./components/select-my-images"
 import { uploadMultipleImages, type UploadedImage } from "@/api/images"
 import { toast } from "sonner"
 
@@ -18,6 +19,7 @@ export default function CreatePage() {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadedServerImages, setUploadedServerImages] = useState<UploadedImage[]>([])
   const [descriptions, setDescriptions] = useState<Record<number, string>>({})
+  const [selectCollectionId, setSelectCollectionId] = useState<string | null>(null)
 
   const handleImagesAdded = (files: File[]) => {
     setUploadedImages((prev) => [...prev, ...files])
@@ -68,6 +70,13 @@ export default function CreatePage() {
 
   return (
     <main className="min-h-screen bg-background">
+      {selectCollectionId ? (
+        <SelectMyImages
+          collectionId={selectCollectionId}
+          onDone={() => setSelectCollectionId(null)}
+          onCancel={() => setSelectCollectionId(null)}
+        />
+      ) : (
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -81,8 +90,8 @@ export default function CreatePage() {
             onClick={() => setActiveTab("upload")}
             className={`px-6 py-3 rounded-lg font-medium transition-all ${
               activeTab === "upload"
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-secondary-foreground hover:bg-muted"
+                ? "bg-red-600 text-white hover:bg-red-700"
+                : "border border-red-600 text-red-600 hover:bg-red-50"
             }`}
           >
             <Upload className="inline mr-2 h-5 w-5" />
@@ -92,8 +101,8 @@ export default function CreatePage() {
             onClick={() => setActiveTab("collection")}
             className={`px-6 py-3 rounded-lg font-medium transition-all ${
               activeTab === "collection"
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-secondary-foreground hover:bg-muted"
+                ? "bg-red-600 text-white hover:bg-red-700"
+                : "border border-red-600 text-red-600 hover:bg-red-50"
             }`}
           >
             <Plus className="inline mr-2 h-5 w-5" />
@@ -127,7 +136,7 @@ export default function CreatePage() {
                 {uploadedImages.length > 0 && (
                   <Button
                     size="lg"
-                    className="w-full"
+                    className="w-full bg-red-600 text-white hover:bg-red-700"
                     disabled={isUploading}
                     onClick={handleUpload}
                   >
@@ -137,7 +146,9 @@ export default function CreatePage() {
               </div>
             )}
 
-            {activeTab === "collection" && <CollectionForm uploadedImages={uploadedImages} />}
+            {activeTab === "collection" && (
+              <CollectionForm uploadedImages={uploadedImages} onCreated={(id) => setSelectCollectionId(id)} />
+            )}
           </div>
 
           {/* Sidebar */}
@@ -161,6 +172,7 @@ export default function CreatePage() {
           </div>
         </div>
       </div>
+      )}
     </main>
   )
 }

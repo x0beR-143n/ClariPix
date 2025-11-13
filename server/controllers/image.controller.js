@@ -1,171 +1,126 @@
 const { StatusCodes } = require('http-status-codes');
 const imageService = require('../services/image.service');
-const multer = require('multer'); // To handle image uploads
+const multer = require('multer');
 
 // Configure multer for file uploads
 const upload = multer({ storage: multer.memoryStorage() });
 
-async function uploadSingleImage(req, res) {
-    try {
-        const uploader_id = req.user.userId;
-        console.log('Uploader ID:', uploader_id);
+// Unified upload handler: supports both single and multiple files
+async function uploadImage(req, res) {
+  try {
+    const uploader_id = req.user.userId;
 
-        // Xử lý descriptions cho nhiều ảnh - FIX: xử lý đúng cách
-        let descriptionsArr = [];
-        if (req.body && req.body.descriptions) {
-            try {
-                // Thử parse như JSON trước
-                if (typeof req.body.descriptions === 'string') {
-                    // Loại bỏ khoảng trắng thừa và thử parse JSON
-                    const trimmed = req.body.descriptions.trim();
-
-                    // Kiểm tra nếu bắt đầu bằng [ và kết thúc bằng ] thì là JSON array
-                    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-                        const parsed = JSON.parse(trimmed);
-                        if (Array.isArray(parsed)) {
-                            descriptionsArr = parsed;
-                        } else {
-                            descriptionsArr = [parsed];
-                        }
-                    } else {
-                        // Nếu không phải JSON array, split bằng dấu phẩy
-                        descriptionsArr = trimmed.split(',').map(desc => desc.trim());
-                    }
-                }
-                // Nếu descriptions đã là array (trường hợp hiếm)
-                else if (Array.isArray(req.body.descriptions)) {
-                    descriptionsArr = req.body.descriptions;
-                }
-            } catch (e) {
-                console.warn('Failed to parse descriptions, splitting by comma:', e?.message);
-                // Nếu parse thất bại, split bằng dấu phẩy
-                descriptionsArr = req.body.descriptions.split(',').map(desc => desc.trim());
+    // Parse descriptions from body in various formats
+    let descriptionsArr = null;
+    if (req.body) {
+      // descriptions[0], descriptions[1] ...
+      const bracketMap = [];
+      Object.keys(req.body).forEach((key) => {
+        const m = key.match(/^descriptions\[(\d+)\]$/);
+        if (m) {
+          const idx = parseInt(m[1], 10);
+          bracketMap[idx] = req.body[key];
+        }
+      });
+      if (bracketMap.length) {
+        descriptionsArr = bracketMap;
+      } else if (req.body.descriptions) {
+        const src = req.body.descriptions;
+        if (Array.isArray(src)) {
+          descriptionsArr = src;
+        } else if (typeof src === 'string') {
+          try {
+            const trimmed = src.trim();
+            if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+              const parsed = JSON.parse(trimmed);
+              descriptionsArr = Array.isArray(parsed) ? parsed : [parsed];
+            } else if (trimmed.includes(',')) {
+              descriptionsArr = trimmed.split(',').map((s) => s.trim());
+            } else {
+              descriptionsArr = [trimmed];
             }
+          } catch (e) {
+            descriptionsArr = src.includes(',') ? src.split(',').map((s) => s.trim()) : [src];
+          }
         }
+      }
+    }
 
-        console.log('Processed descriptions:', descriptionsArr);
-
-        // Chỉ xử lý multiple files
-        if (!req.files || req.files.length === 0) {
-            return res.status(StatusCodes.BAD_REQUEST).json({
-                status: 'error',
-                message: 'No file was uploaded.'
-            });
-        }
-
-        // const uploader_id = req.user.userId;
-        const { description } = req.body;
-
-        const { buffer, originalname, mimetype } = req.file;
-        const imageRecord = await imageService.createImageRecordInDB({
+    // Multiple files
+    if (Array.isArray(req.files) && req.files.length) {
+      const results = await Promise.all(
+        req.files.map(({ buffer, originalname, mimetype }, idx) => {
+          const perDesc = descriptionsArr?.[idx] ?? '';
+          return imageService.createImageRecordInDB({
             uploader_id,
             fileBuffer: buffer,
             originalName: originalname,
             mimeType: mimetype,
-            description
-        });
-
-        res.status(StatusCodes.CREATED).json({
-            status: 'success',
-            message: 'Successfully uploaded 1 image',
-            data: imageRecord
-        });
-    } catch (error) {
-        console.error('Error in uploadSingleImage controller:', error);
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-            status: 'error',
-            message: 'Failed to upload image. ' + error.message
-        });
+            description: perDesc,
+          });
+        })
+      );
+      return res.status(StatusCodes.CREATED).json({
+        status: 'success',
+        message: `Successfully uploaded ${results.length} image(s)`,
+        data: results,
+      });
     }
-}
 
-async function uploadMultipleImages(req, res) {
-    try {
-        if (!req.files || req.files.length === 0) {
-            return res.status(StatusCodes.BAD_REQUEST).json({
-                status: 'error',
-                message: 'No files were uploaded.'
-            });
-        }
-
-        const results = await Promise.all(
-            req.files.map(({ buffer, originalname, mimetype }, idx) => {
-                // Lấy description tương ứng cho từng ảnh
-                const perDesc = descriptionsArr[idx] || '';
-
-                return imageService.createImageRecordInDB({
-                    uploader_id,
-                    fileBuffer: buffer,
-                    originalName: originalname,
-                    mimeType: mimetype,
-                    description: perDesc
-                });
-            })
-        );
-
-        return res.status(StatusCodes.CREATED).json({
-            status: 'success',
-            message: `Successfully uploaded ${results.length} image(s)`,
-            data: results
-        });
-    } catch (error) {
-        console.error('Error in uploadMultipleImages controller:', error);
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-            status: 'error',
-            message: 'Failed to upload image(s). ' + error.message
-        });
+    // Single file
+    if (!req.file) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        status: 'error',
+        message: 'No files were uploaded.',
+      });
     }
+    const { description } = req.body;
+    const { buffer, originalname, mimetype } = req.file;
+    const imageRecord = await imageService.createImageRecordInDB({
+      uploader_id,
+      fileBuffer: buffer,
+      originalName: originalname,
+      mimeType: mimetype,
+      description: (descriptionsArr && descriptionsArr[0]) ?? description ?? '',
+    });
+    return res.status(StatusCodes.CREATED).json({
+      status: 'success',
+      message: 'Image uploaded successfully',
+      data: imageRecord,
+    });
+  } catch (error) {
+    console.error('Error in uploadImage controller:', error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      status: 'error',
+      message: 'Failed to upload image(s). ' + error.message,
+    });
+  }
 }
 
 async function deleteImage(req, res) {
-    try {
-        const { imageId } = req.params;
-
-        const userId = req.user.userId;
-
-        await imageService.deleteImageFromS3(userId, imageId);
-
-        res.status(StatusCodes.OK).json({
-            status: 'success',
-            message: 'Image deleted successfully'
-        });
-    } catch (error) {
-        console.error('Error in deleteImage controller:', error);
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-            status: 'error',
-            message: 'Failed to delete image. ' + error.message
-        });
-    }
+  try {
+    const { imageId } = req.params;
+    const userId = req.user.userId;
+    await imageService.deleteImageFromS3(userId, imageId);
+    res.status(StatusCodes.OK).json({
+      status: 'success',
+      message: 'Image deleted successfully',
+    });
+  } catch (error) {
+    console.error('Error in deleteImage controller:', error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      status: 'error',
+      message: 'Failed to delete image. ' + error.message,
+    });
+  }
 }
 
-// async function incrementViewCount(req, res) {
-//     try {
-//         const { imageId } = req.params;
-//         const userId = req.user.userId;
-//
-//         const result = await imageService.incrementView(userId, imageId);
-//         let message = 'View count incremented successfully';
-//         if (!result) {
-//             message = 'Already viewed this. View count not incremented.';
-//         }
-//         res.status(StatusCodes.OK).json({
-//             status: 'success',
-//             message: message
-//         });
-//     } catch (error) {
-//         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-//             status: 'error',
-//             message: 'Failed to increment view count. ' + error.message
-//         });
-//     }
-// }
-
 async function getImagesWithPagination(req, res) {
-    try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-        const sorter = req.query.sorter || 'created_at';
-        const order = req.query.order || 'DESC';
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const sorter = req.query.sorter || 'created_at';
+    const order = req.query.order || 'DESC';
 
         // Nhận queries từ querystring:
         // Hỗ trợ nhiều kiểu: ?queries[]=a&queries[]=b  hoặc ?queries='["a","b"]'  hoặc ?queries=a,b
@@ -212,41 +167,31 @@ async function getImagesWithPagination(req, res) {
 }
 
 async function getImageById(req, res) {
-    try {
-        const { imageId } = req.params;
-        const userId = req.user?.userId; // Có thể undefined nếu không đăng nhập
-
-        // Get image và chỉ tăng view count nếu user đã đăng nhập
-        const image = await imageService.getImageById(imageId, userId);
-
-        if (!image) {
-            return res.status(StatusCodes.NOT_FOUND).json({
-                status: 'error',
-                message: 'Image not found'
-            });
-        }
-
-        res.status(StatusCodes.OK).json({
-            status: 'success',
-            data: image
-        });
-    } catch (error) {
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-            status: 'error',
-            message: 'Failed to retrieve image. ' + error.message
-        });
+  try {
+    const { imageId } = req.params;
+    const userId = req.user?.userId;
+    const image = await imageService.getImageById(imageId, userId);
+    if (!image) {
+      return res.status(StatusCodes.NOT_FOUND).json({ status: 'error', message: 'Image not found' });
     }
+    res.status(StatusCodes.OK).json({ status: 'success', data: image });
+  } catch (error) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      status: 'error',
+      message: 'Failed to retrieve image. ' + error.message,
+    });
+  }
 }
 
 // Middlewares for single vs multiple uploads
 const uploadMiddleware = upload.single('image');
-const uploadMultipleMiddleware = upload.array('images', 10); // up to 10 files per request
+const uploadMultipleMiddleware = upload.array('images', 10);
 
 module.exports = {
-    uploadMultipleImages,
-    uploadMiddleware,
-    uploadMultipleMiddleware,
-    deleteImage,
-    getImagesWithPagination,
-    getImageById
+  uploadImage,
+  uploadMiddleware,
+  uploadMultipleMiddleware,
+  deleteImage,
+  getImagesWithPagination,
+  getImageById,
 };
