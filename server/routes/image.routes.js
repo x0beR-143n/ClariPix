@@ -253,6 +253,16 @@ router.delete(
  *           enum: [ASC, DESC]
  *           default: DESC
  *         description: Thứ tự sắp xếp
+ *       - in: query
+ *         name: queries
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *         style: form
+ *         explode: true
+ *         description: |
+ *           Mảng chuỗi truy vấn. Hỗ trợ nhiều cách truyền: `queries[]=a&queries[]=b`, `queries=a,b` hoặc `queries=["a","b"]`.
  *     responses:
  *       200:
  *         description: Danh sách ảnh với phân trang
