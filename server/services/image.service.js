@@ -1,6 +1,7 @@
 const AWS = require('aws-sdk');
 const Image = require("../models/image.model");
 const ImageViewByUser = require("../models/imageViewByUser.model");
+const { Op } = require('sequelize');
 
 const s3 = new AWS.S3({
     region: process.env.AWS_REGION || 'ap-southeast-2',
@@ -120,7 +121,7 @@ async function getImageById(imageId, userId = null) {
             return null;
         }
 
-        // Chỉ tăng view count nếu user đã đăng nhập (userId không null)
+        // Only increase view if login (userId không null)
         if (userId) {
             try {
                 await incrementView(userId, imageId);
@@ -139,13 +140,57 @@ async function getImageById(imageId, userId = null) {
     }
 }
 
-async function getImagesWithPagination(page, limit, sorter, order) {
+const THRESHOLD = 0.5;
+
+async function getImagesWithPagination(page = 1, limit = 10, sorter = 'created_at', order = 'DESC', queries = []) {
     const offset = (page - 1) * limit;
-    return await Image.findAll({
+
+    // Build common safe_score condition
+    const safeCondition = {
+        safe_score: {
+            [Op.not]: null,
+            [Op.gt]: THRESHOLD
+        }
+    };
+
+    // Nếu queries là mảng và có phần tử: trả về 1 mảng chứa kết quả cho mỗi query
+    if (Array.isArray(queries) && queries.length > 0) {
+        // Map từng query -> tìm các ảnh với categories chứa query
+        const results = await Promise.all(queries.map(async (q) => {
+            // Nếu categories lưu dưới dạng Postgres array hoặc JSONB, Op.contains thường được dùng:
+            // categories contains [q]
+            const where = {
+                ...safeCondition,
+                categories: {
+                    [Op.contains]: [q]
+                }
+            };
+
+            return Image.findAll({
+                where,
+                offset,
+                limit,
+                order: [[sorter, order]]
+            });
+        }));
+
+        // results là mảng các mảng ảnh
+        return results;
+    }
+
+    // Nếu không có queries: trả về danh sách ảnh bình thường (1 mảng)
+    const where = {
+        ...safeCondition
+    };
+
+    const images = await Image.findAll({
+        where,
         offset,
         limit,
-        order: [[sorter, order]],
+        order: [[sorter, order]]
     });
+
+    return images;
 }
 
 module.exports = {

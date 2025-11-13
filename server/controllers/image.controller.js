@@ -122,14 +122,48 @@ async function getImagesWithPagination(req, res) {
     const sorter = req.query.sorter || 'created_at';
     const order = req.query.order || 'DESC';
 
-    const images = await imageService.getImagesWithPagination(page, limit, sorter, order);
-    res.status(StatusCodes.OK).json({ status: 'success', data: images });
-  } catch (error) {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      status: 'error',
-      message: 'Failed to retrieve images. ' + error.message,
-    });
-  }
+        // Nhận queries từ querystring:
+        // Hỗ trợ nhiều kiểu: ?queries[]=a&queries[]=b  hoặc ?queries='["a","b"]'  hoặc ?queries=a,b
+        let queries = [];
+        if (req.query.queries) {
+            if (Array.isArray(req.query.queries)) {
+                queries = req.query.queries;
+            } else if (typeof req.query.queries === 'string') {
+                const raw = req.query.queries.trim();
+                // Try parse JSON array string first
+                try {
+                    if ((raw.startsWith('[') && raw.endsWith(']')) || raw.startsWith('"')) {
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed)) {
+                            queries = parsed;
+                        } else if (typeof parsed === 'string') {
+                            queries = [parsed];
+                        }
+                    } else {
+                        // comma separated
+                        queries = raw.split(',').map(s => s.trim()).filter(Boolean);
+                    }
+                } catch (e) {
+                    // fallback: split by comma
+                    queries = raw.split(',').map(s => s.trim()).filter(Boolean);
+                }
+            }
+        }
+
+        // Gọi service (bổ sung param queries)
+        const images = await imageService.getImagesWithPagination(page, limit, sorter, order, queries);
+
+        res.status(StatusCodes.OK).json({
+            status: 'success',
+            data: images
+        });
+    } catch (error) {
+        console.error('Error in getImagesWithPagination controller:', error);
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            status: 'error',
+            message: 'Failed to retrieve images. ' + error.message
+        });
+    }
 }
 
 async function getImageById(req, res) {
@@ -161,4 +195,3 @@ module.exports = {
   getImagesWithPagination,
   getImageById,
 };
-
