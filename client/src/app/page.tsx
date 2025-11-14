@@ -7,6 +7,7 @@ import SearchHeader from "../components/shared/SearchHeader";
 import { ImageMetadata } from "../interfaces/images";
 import { getAllImages } from "../api/image";
 import GallerySkeleton from "../components/home/GallerySkeleton";
+import { useSearchParams } from "next/navigation";
 
 const LIMIT = 15;
 
@@ -21,16 +22,18 @@ export default function Home() {
 
   const bottomRef = useRef<HTMLDivElement | null>(null)
 
+  const searchParams = useSearchParams();
+  const queries = searchParams.get("search") || undefined;
+
   // load page 1
   useEffect(() => {
     const fetchImages = async () => {
       try {
         setLoading(true)
         setError(null)
-        const data: ImageMetadata[] = await getAllImages(1, LIMIT)
+        const data: ImageMetadata[] = await getAllImages(1, LIMIT, queries)
         const images_url: string[] = data.map((e) => e.image_url)
         setImages(images_url)
-
         // nếu số ảnh ít hơn LIMIT => coi như hết luôn
         if (data.length < LIMIT) {
           setHasMore(false)
@@ -43,7 +46,7 @@ export default function Home() {
     }
 
     fetchImages()
-  }, [])
+  }, [queries])
 
   // khi canGetImage = true thì load thêm
   useEffect(() => {
@@ -53,7 +56,7 @@ export default function Home() {
       try {
         setIsLoadingMore(true)
         const nextPage = page + 1
-        const data: ImageMetadata[] = await getAllImages(nextPage, LIMIT)
+        const data: ImageMetadata[] = await getAllImages(nextPage, LIMIT, queries)
         const images_url: string[] = data.map((e) => e.image_url)
 
         setImages(prev => [...prev, ...images_url])
@@ -71,7 +74,7 @@ export default function Home() {
     }
 
     getMoreImage()
-  }, [canGetImage, isLoadingMore, page, hasMore])
+  }, [canGetImage, isLoadingMore, page, hasMore, queries])
 
   // observer: đến gần đáy thì setCanGetImage(true)
   useEffect(() => {
@@ -110,7 +113,7 @@ export default function Home() {
 
   return (
     <div className="p-6 flex flex-col gap-y-10 min-h-screen">
-      <SearchHeader />
+      <SearchHeader text={queries}/>
 
       {loading && <GallerySkeleton count={16} />}
       {error && <p className="text-red-500 text-center">{error}</p>}

@@ -17,6 +17,8 @@ interface MasonryGalleryProps {
 }
 
 export default function MasonryGallery({images} : MasonryGalleryProps) {
+  // console.log(images);
+  
   return (
     <Masonry
       breakpointCols={breakpointColumns}
