@@ -108,6 +108,34 @@ const paginationValidation = [
     query('limit').optional().isInt({ min: 1 }).withMessage('limit must be an integer greater than 0'),
     query('sorter').optional().isString().withMessage('sorter must be a string'),
     query('order').optional().isIn(['ASC', 'DESC']).withMessage('order must be either ASC or DESC'),
+    // queries: hỗ trợ nhiều dạng input:
+    // - ?queries[]=a&queries[]=b
+    // - ?queries=a,b
+    // - ?queries='["a","b"]'
+    query('queries')
+        .optional()
+        .customSanitizer((value) => {
+            // Nếu đã là mảng thì trả về luôn
+            if (Array.isArray(value)) return value.map(String);
+            if (typeof value === 'string') {
+                const raw = value.trim();
+                // thử parse JSON array
+                try {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed)) return parsed.map(String);
+                } catch (e) {
+                    // ignore
+                }
+                // fallback: comma separated
+                if (raw === '') return [];
+                return raw.split(',').map(s => s.trim()).filter(Boolean);
+            }
+            // other types: wrap thành string
+            if (value == null) return [];
+            return [String(value)];
+        })
+        .isArray().withMessage('queries must be an array of strings'),
+    query('queries.*').optional().isString().withMessage('each query must be a string')
 ];
 
 module.exports = {

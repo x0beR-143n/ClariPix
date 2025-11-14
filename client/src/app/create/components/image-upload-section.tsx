@@ -63,7 +63,7 @@ export default function ImageUploadSection({ onImagesAdded }: ImageUploadSection
           <h3 className="text-lg font-semibold text-foreground">Drop your images here</h3>
           <p className="text-sm text-muted-foreground mt-1">or click to browse from your computer</p>
         </div>
-        <Button onClick={() => fileInputRef.current?.click()} className="mt-4">
+        <Button onClick={() => fileInputRef.current?.click()} className="mt-4 bg-red-600 text-white hover:bg-red-700">
           <ImageIcon className="h-4 w-4 mr-2" />
           Select Images
         </Button>
