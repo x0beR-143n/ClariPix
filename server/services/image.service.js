@@ -145,7 +145,6 @@ const THRESHOLD = 0.5;
 async function getImagesWithPagination(page = 1, limit = 10, sorter = 'created_at', order = 'DESC', queries = []) {
     const offset = (page - 1) * limit;
 
-    // Build common safe_score condition
     const safeCondition = {
         safe_score: {
             [Op.not]: null,
@@ -153,35 +152,40 @@ async function getImagesWithPagination(page = 1, limit = 10, sorter = 'created_a
         }
     };
 
-    // Nếu queries là mảng và có phần tử: trả về 1 mảng chứa kết quả cho mỗi query
+    // Nếu có queries
     if (Array.isArray(queries) && queries.length > 0) {
-        // Map từng query -> tìm các ảnh với categories chứa query
-        const results = await Promise.all(queries.map(async (q) => {
-            // Nếu categories lưu dưới dạng Postgres array hoặc JSONB, Op.contains thường được dùng:
-            // categories contains [q]
-            const where = {
-                ...safeCondition,
-                categories: {
-                    [Op.contains]: [q]
-                }
-            };
+        const results = await Promise.all(
+            queries.map(async (q) => {
+                const where = {
+                    ...safeCondition,
+                    categories: {
+                        [Op.contains]: [q]
+                    }
+                };
 
-            return Image.findAll({
-                where,
-                offset,
-                limit,
-                order: [[sorter, order]]
-            });
-        }));
+                return Image.findAll({
+                    where,
+                    offset,
+                    limit,
+                    order: [[sorter, order]]
+                });
+            })
+        );
 
-        // results là mảng các mảng ảnh
-        return results;
+        // results: Array<Array<Image>>
+        // Flatten + remove duplicates
+        const flat = results.flat();
+
+        // Loại trùng theo primary key (id)
+        const unique = Array.from(
+            new Map(flat.map(img => [img.id, img])).values()
+        );
+
+        return unique;
     }
 
-    // Nếu không có queries: trả về danh sách ảnh bình thường (1 mảng)
-    const where = {
-        ...safeCondition
-    };
+    // Không có queries
+    const where = { ...safeCondition };
 
     const images = await Image.findAll({
         where,
@@ -192,6 +196,7 @@ async function getImagesWithPagination(page = 1, limit = 10, sorter = 'created_a
 
     return images;
 }
+
 
 module.exports = {
     createImageRecordInDB,
