@@ -1,62 +1,40 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
-import { useEffect, useState } from "react";
+
+import { useEffect, useRef, useState } from "react";
 import MasonryGallery from "../components/home/MasonryImageDisplay";
 import SearchHeader from "../components/shared/SearchHeader";
 import { ImageMetadata } from "../interfaces/images";
 import { getAllImages } from "../api/image";
 import GallerySkeleton from "../components/home/GallerySkeleton";
 
-// export const images = [
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759316670/hotpink_cqjleo.jpg",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759316669/scarlet_wkmqjc.jpg",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759232912/planet-her_owrm71.jpg",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759571460/v_yfxwao.png",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759680066/eternal-sunshines_xxsizo.jpg",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759678761/Yours_Truly_ja27qs.webp",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759678759/My_Everything_uq66ui.png",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759678758/Dangerous_Woman_jy3l2i.jpg",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759374720/austin_wucboq.jpg",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759374720/twelve-carat-toothache-album_ijz6iz.jpg",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759374718/beerbong_dxownv.jpg",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759374718/Post-Malone-F-1-Trillion_gwdrw0.webp",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759678663/Sweetener_k4j8dd.jpg",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759571443/Overexposed_njovkp.jpg",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759374721/Post-Malone-Hollywoods-Bleeding_iakfas.webp",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759374720/stoney_wszlvr.jpg",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759678642/Thank_U_Next_xfbvpy.jpg",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759678587/Positions_eeujsv.webp",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759678980/true_egt1mn.webp",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759678979/Stories_vqzd8c.webp",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759678977/AV%C4%AACI_01_EP_fpf2jc.jpg",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759678862/The_Days_Nights_EP_rrf6xt.jpg",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759678822/TIM_pgtasj.jpg",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759679779/Don_t_Smile_at_Me_EP_nau2sv.jpg",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759679775/When_We_All_Fall_Asleep_Where_Do_We_go_zwmkav.jpg",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759679773/HIT_ME_HARD_AND_SOFT_rvaovt.webp",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759316862/amala_xxrrmt.jpg",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759571449/Red_Pill_Blues_ds1fco.png",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759571447/Hands_All_Over_bx0fun.png",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759571445/It_Won_t_Be_Soon_Before_Long_gykoj1.jpg",
-//   "https://res.cloudinary.com/dbysi3x4e/image/upload/v1759571442/Songs_About_Jane_hcv3pl.png",
-// ]
+const LIMIT = 15;
 
 export default function Home() {
   const [images, setImages] = useState<string[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
+  const [page, setPage] = useState<number>(1)
+  const [canGetImage, setCanGetImage] = useState(false)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
 
+  const bottomRef = useRef<HTMLDivElement | null>(null)
+
+  // load page 1
   useEffect(() => {
     const fetchImages = async () => {
-      try {        
+      try {
         setLoading(true)
         setError(null)
-        const data: ImageMetadata[] = await getAllImages(1, 30)
-        const images_url : string[] = [];
-        data.map(element => {
-          images_url.push(element.image_url);
-        });
+        const data: ImageMetadata[] = await getAllImages(1, LIMIT)
+        const images_url: string[] = data.map((e) => e.image_url)
         setImages(images_url)
+
+        // nếu số ảnh ít hơn LIMIT => coi như hết luôn
+        if (data.length < LIMIT) {
+          setHasMore(false)
+        }
       } catch (err: any) {
         setError(err?.message || "Failed to load images")
       } finally {
@@ -67,12 +45,95 @@ export default function Home() {
     fetchImages()
   }, [])
 
+  // khi canGetImage = true thì load thêm
+  useEffect(() => {
+    const getMoreImage = async () => {
+      if (!canGetImage || isLoadingMore || !hasMore) return
+
+      try {
+        setIsLoadingMore(true)
+        const nextPage = page + 1
+        const data: ImageMetadata[] = await getAllImages(nextPage, LIMIT)
+        const images_url: string[] = data.map((e) => e.image_url)
+
+        setImages(prev => [...prev, ...images_url])
+        setPage(nextPage)
+
+        if (data.length < LIMIT) {
+          setHasMore(false) // lần này cũng ít hơn LIMIT -> hết data
+        }
+      } catch (err: any) {
+        setError(err?.message || "Failed to load images")
+      } finally {
+        setIsLoadingMore(false)
+        setCanGetImage(false)
+      }
+    }
+
+    getMoreImage()
+  }, [canGetImage, isLoadingMore, page, hasMore])
+
+  // observer: đến gần đáy thì setCanGetImage(true)
+  useEffect(() => {
+    // nếu đang load lần đầu, đang lỗi, hoặc hết ảnh rồi -> khỏi setup observer
+    if (loading || error || !hasMore) return
+
+    const sentinel = bottomRef.current
+    if (!sentinel) {
+      console.log("Sentinel chưa tồn tại lúc này")
+      return
+    }
+
+    console.log("IntersectionObserver được setup")
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0]
+        if (entry.isIntersecting && !isLoadingMore && hasMore) {
+          console.log("🚀 GẦN ĐÁY RỒI – gọi API / load thêm ở đây")
+          setCanGetImage(true)
+        }
+      },
+      {
+        root: null,
+        rootMargin: '0px 0px 300px 0px',
+        threshold: 0,
+      }
+    )
+
+    observer.observe(sentinel)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [error, isLoadingMore, loading, hasMore])
+
   return (
-    <div className="p-6 flex flex-col gap-y-10">
+    <div className="p-6 flex flex-col gap-y-10 min-h-screen">
       <SearchHeader />
+
       {loading && <GallerySkeleton count={16} />}
       {error && <p className="text-red-500 text-center">{error}</p>}
-      {!loading && !error && <MasonryGallery images={images} />}
+
+      {!loading && !error && (
+        <>
+          <MasonryGallery images={images} />
+          <div
+            ref={bottomRef}
+            className="h-10 w-full bg-transparent"
+          />
+          {isLoadingMore && (
+            <p className="text-center text-gray-400 text-sm">
+              Loading more images...
+            </p>
+          )}
+          {!hasMore && (
+            <p className="text-center text-gray-400 text-sm">
+              You have seen all images 🎉
+            </p>
+          )}
+        </>
+      )}
     </div>
   );
 }

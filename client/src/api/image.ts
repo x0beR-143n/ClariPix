@@ -8,7 +8,7 @@ export const getAllImages = async (page: number, limit: number ) : Promise<Image
     const data = await axiosBase.get(`/images?page=${page}&limit=${limit}`);
     const isSuccess = data.status;
     if(isSuccess) {
-        console.log(data.data.data);
+        // console.log(data.data.data);
         return data.data.data;
     } else {
         return [];
