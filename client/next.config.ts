@@ -15,6 +15,11 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: 'https',
+        hostname: 'claripix-bucket.s3.ap-southeast-2.amazonaws.com',
+        pathname: '/images/**',
+      },
     ],
   },
 };

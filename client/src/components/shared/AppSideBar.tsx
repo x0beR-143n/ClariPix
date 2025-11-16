@@ -39,7 +39,7 @@ export default function AppSideBar() {
     : TOP_ITEMS.filter((item) => item.href !== '/profile')
 
   return (
-    <aside className="h-screen w-24 bg-zinc-100 border-r border-r-zinc-200 py-6 flex flex-col items-center justify-between">
+    <aside className="h-screen w-24 bg-zinc-100 border-r border-r-zinc-200 py-6 flex flex-col items-center justify-between fixed top-0 left-0">
       {/* logo */}
       <div className="flex flex-col items-center gap-y-5">
         <Link href="/" className="side-bar-item" aria-label="ClairFix home" title="ClairFix">
