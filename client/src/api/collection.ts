@@ -27,3 +27,47 @@ export async function getCollectionByID(collectionID: string) : Promise<Collecti
         throw { code: 'NETWORK', message: 'Network Error' } 
     }
 }
+
+export type UserCollection = {
+    id: string;
+    name: string;
+    description?: string;
+    created_at: string;
+    images: ImageMetadata[];
+}
+
+export async function getUserCollections(): Promise<UserCollection[]> {
+    try {
+        const { data } = await axiosAuth.get<{ success: boolean; data: UserCollection[] }>('/collections/my-collections');
+        if (data && 'data' in data) return data.data;
+        return [];
+    } catch (err: any) {
+        if (axios.isAxiosError(err)) {
+            if (!err.response) {
+                throw { code: 'NETWORK', message: 'Network Error' }
+            }
+            throw {
+                code: 'ServerError',
+                message: 'Unable to load collections. Please try again later',
+            }
+        }
+        throw { code: 'NETWORK', message: 'Network Error' }
+    }
+}
+
+export async function addImageToCollection(collectionId: string, imageId: string): Promise<void> {
+    try {
+        await axiosAuth.post(`/collections/${collectionId}/images`, { imageIds: [imageId] });
+    } catch (err: any) {
+        if (axios.isAxiosError(err)) {
+            if (!err.response) {
+                throw { code: 'NETWORK', message: 'Network Error' }
+            }
+            throw {
+                code: 'ServerError',
+                message: 'Unable to add image to collection. Please try again later',
+            }
+        }
+        throw { code: 'NETWORK', message: 'Network Error' }
+    }
+}
