@@ -43,7 +43,6 @@ export type ServerProfile = {
   avatar_url?: string | null
   preferences?: string[]
   created_at: string
-  uploaded_images: ServerImage[]
   recent_images: ServerImage[]
   collections: ServerCollection[]
 }
@@ -60,10 +59,17 @@ export const getUserProfile = async (): Promise<ServerProfile> => {
 }
 
 export function mapServerProfileToProfileData(p: ServerProfile): ProfileData {
-  const uploaded = (p.uploaded_images || []).map((img) => img.image_url).filter(Boolean)
-  const collections = (p.collections || [])
-    .map((col) => col.images?.[0]?.image_url)
-    .filter((url): url is string => Boolean(url))
+  const uploaded = (p.recent_images || [])
+    .map((img) => img?.image_url)
+    .filter((url): url is string => Boolean(url) && typeof url === 'string')
+  
+  const collections = (p.collections || []).map((col) => ({
+    id: col.id,
+    name: col.name,
+    description: col.description,
+    coverImage: col.images?.[0]?.image_url,
+    imageCount: col.images?.length || 0,
+  }))
 
   return {
     id: p.id,
