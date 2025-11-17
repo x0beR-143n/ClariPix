@@ -1,67 +1,75 @@
 "use client";
 
-import { Heart, Share2, Download, MoreHorizontal, Bookmark } from "lucide-react";
+import { useState } from "react";
+import { Heart, Share2, FolderPlus } from "lucide-react";
+import ShareModal from "./ShareModal";
+import AddToCollectionModal from "./AddToCollectionModal";
+import { useAuthStore } from "../../store/authStore";
 
 type PictureActionButtonsProps = {
   isLiked: boolean;
-  isSaved: boolean;
   likeCount: number;
   onLike: () => void;
-  onSave: () => void;
+  imageId: string;
 };
 
 export default function PictureActionButtons({
   isLiked,
-  isSaved,
   likeCount,
   onLike,
-  onSave,
+  imageId,
 }: PictureActionButtonsProps) {
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [collectionModalOpen, setCollectionModalOpen] = useState(false);
+  const { isLogin } = useAuthStore();
+
   return (
-    <div className="flex items-center gap-3 mb-6 flex-wrap">
-      <button
-        onClick={onSave}
-        className={`flex items-center gap-2 px-4 py-2.5 rounded-full font-semibold text-sm transition-colors ${
-          isSaved
-            ? "bg-zinc-900 text-white hover:bg-zinc-800"
-            : "bg-red-600 text-white hover:bg-red-700"
-        }`}
-      >
-        <Bookmark size={18} fill={isSaved ? "currentColor" : "none"} />
-        {isSaved ? "Saved" : "Save"}
-      </button>
+    <>
+      <div className="flex items-center gap-3 mb-6 flex-wrap">
+        <button
+          onClick={onLike}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-full font-semibold text-sm transition-colors min-w-[4.5rem] ${
+            isLiked
+              ? "bg-zinc-200 text-zinc-900 hover:bg-zinc-300"
+              : "bg-zinc-100 text-zinc-900 hover:bg-zinc-200"
+          }`}
+        >
+          <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
+          <span className="tabular-nums">{likeCount}</span>
+        </button>
 
-      <button
-        onClick={onLike}
-        className={`flex items-center gap-2 px-4 py-2.5 rounded-full font-semibold text-sm transition-colors ${
-          isLiked
-            ? "bg-zinc-200 text-zinc-900 hover:bg-zinc-300"
-            : "bg-zinc-100 text-zinc-900 hover:bg-zinc-200"
-        }`}
-      >
-        <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
-        {likeCount}
-      </button>
+        {isLogin && (
+          <button
+            onClick={() => setCollectionModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-full font-semibold text-sm bg-zinc-100 text-zinc-900 hover:bg-zinc-200 transition-colors"
+          >
+            <FolderPlus size={18} />
+            Save
+          </button>
+        )}
 
-      <button className="flex items-center gap-2 px-4 py-2.5 rounded-full font-semibold text-sm bg-zinc-100 text-zinc-900 hover:bg-zinc-200 transition-colors">
-        <Share2 size={18} />
-        Share
-      </button>
+        <button
+          onClick={() => setShareModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-full font-semibold text-sm bg-zinc-100 text-zinc-900 hover:bg-zinc-200 transition-colors"
+        >
+          <Share2 size={18} />
+          Share
+        </button>
+      </div>
 
-      <button
-        className="flex items-center gap-2 px-4 py-2.5 rounded-full font-semibold text-sm bg-zinc-100 text-zinc-900 hover:bg-zinc-200 transition-colors"
-        aria-label="Download image"
-      >
-        <Download size={18} />
-      </button>
+      <ShareModal
+        open={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+      />
 
-      <button
-        className="flex items-center gap-2 px-4 py-2.5 rounded-full font-semibold text-sm bg-zinc-100 text-zinc-900 hover:bg-zinc-200 transition-colors"
-        aria-label="More options"
-      >
-        <MoreHorizontal size={18} />
-      </button>
-    </div>
+      {isLogin && (
+        <AddToCollectionModal
+          open={collectionModalOpen}
+          onClose={() => setCollectionModalOpen(false)}
+          imageId={imageId}
+        />
+      )}
+    </>
   );
 }
 

@@ -19,7 +19,7 @@ export default function PictureCategories({
           <Link
             key={index}
             href={`/discover?category=${encodeURIComponent(category)}`}
-            className="px-3 py-1.5 rounded-full bg-zinc-100 text-zinc-700 text-sm font-medium hover:bg-zinc-200 transition-colors"
+            className="px-3 py-1.5 rounded-full bg-zinc-300 text-zinc-700 text-sm font-medium hover:bg-zinc-400 transition-colors"
           >
             {category}
           </Link>

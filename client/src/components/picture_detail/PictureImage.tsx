@@ -14,7 +14,7 @@ export default function PictureImage({ pictureData }: PictureImageProps) {
         <div className="relative w-full rounded-2xl overflow-hidden bg-zinc-100 aspect-auto">
           <Image
             src={pictureData.image_url}
-            alt={pictureData.title}
+            alt={pictureData.description || "Image"}
             width={800}
             height={1200}
             className="w-full h-auto object-contain rounded-2xl"

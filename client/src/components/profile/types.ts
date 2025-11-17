@@ -1,3 +1,11 @@
+export type CollectionData = {
+  id: string;
+  name: string;
+  description?: string;
+  coverImage?: string; // first image URL or null
+  imageCount: number;
+};
+
 export type ProfileData = {
   id: string;
   name: string;
@@ -9,6 +17,6 @@ export type ProfileData = {
   created_at: string;
   uploaded: string[];    // user's uploaded image URLs
   saved: string[];       // user's saved image URLs
-  collections: string[]; // collection cover image URLs (mocked)
+  collections: CollectionData[]; // collection data with names
 };
 

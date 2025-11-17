@@ -11,7 +11,7 @@ import GallerySkeleton from "../components/home/GallerySkeleton";
 const LIMIT = 15;
 
 export default function Home() {
-  const [images, setImages] = useState<string[]>([])
+  const [images, setImages] = useState<Array<{ id: string; image_url: string }>>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [page, setPage] = useState<number>(1)
@@ -28,8 +28,8 @@ export default function Home() {
         setLoading(true)
         setError(null)
         const data: ImageMetadata[] = await getAllImages(1, LIMIT)
-        const images_url: string[] = data.map((e) => e.image_url)
-        setImages(images_url)
+        const imagesWithIds = data.map((e) => ({ id: e.id, image_url: e.image_url }))
+        setImages(imagesWithIds)
 
         // nếu số ảnh ít hơn LIMIT => coi như hết luôn
         if (data.length < LIMIT) {
@@ -54,9 +54,14 @@ export default function Home() {
         setIsLoadingMore(true)
         const nextPage = page + 1
         const data: ImageMetadata[] = await getAllImages(nextPage, LIMIT)
-        const images_url: string[] = data.map((e) => e.image_url)
+        const imagesWithIds = data.map((e) => ({ id: e.id, image_url: e.image_url }))
 
-        setImages(prev => [...prev, ...images_url])
+        setImages(prev => {
+          // Deduplicate by ID to avoid duplicate keys
+          const existingIds = new Set(prev.map(img => img.id))
+          const newImages = imagesWithIds.filter(img => !existingIds.has(img.id))
+          return [...prev, ...newImages]
+        })
         setPage(nextPage)
 
         if (data.length < LIMIT) {
