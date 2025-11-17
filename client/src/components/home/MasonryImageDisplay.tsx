@@ -22,19 +22,6 @@ interface MasonryGalleryProps {
 }
 
 export default function MasonryGallery({images} : MasonryGalleryProps) {
-  // Normalize images to always have id and image_url
-  const normalizedImages = images.map((img, idx) => {
-    if (typeof img === 'string') {
-      // Legacy: extract ID from URL if it's an S3 URL, otherwise use index
-      const uuidMatch = img.match(/images\/([a-f0-9-]+)/);
-      return {
-        id: uuidMatch ? uuidMatch[1] : `img-${idx}`,
-        image_url: img,
-      };
-    }
-    return img;
-  });
-
   return (
     <Masonry
       breakpointCols={breakpointColumns}
