@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect, use } from "react";
@@ -8,7 +9,7 @@ import PictureActionButtons from "../../../components/picture_detail/PictureActi
 import PictureStats from "../../../components/picture_detail/PictureStats";
 import PictureCategories from "../../../components/picture_detail/PictureCategories";
 import PictureMetadata from "../../../components/picture_detail/PictureMetadata";
-import MasonryGallery from "../../../components/home/MasonryImageDisplay";
+// import MasonryGallery from "../../../components/home/MasonryImageDisplay";
 import { getImageById } from "../../../api/image";
 import type { PictureData } from "../../../components/picture_detail/types";
 
@@ -34,7 +35,7 @@ export default function PictureDetailPage({ params }: { params: Promise<{ id: st
   const [error, setError] = useState<string | null>(null);
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
-  const [relatedImages] = useState<string[]>([]);
+  // const [relatedImages] = useState<string[]>([]);
 
   useEffect(() => {
     let mounted = true;

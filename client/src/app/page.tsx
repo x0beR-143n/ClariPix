@@ -2,7 +2,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from "react";
-import MasonryGallery from "../components/home/MasonryImageDisplay";
+import MasonryGallery, { ImageItem } from "../components/home/MasonryImageDisplay";
 import SearchHeader from "../components/shared/SearchHeader";
 import { ImageMetadata } from "../interfaces/images";
 import { getAllImages } from "../api/image";
@@ -12,7 +12,7 @@ import { useSearchParams } from "next/navigation";
 const LIMIT = 15;
 
 export default function Home() {
-  const [images, setImages] = useState<string[]>([])
+  const [images, setImages] = useState<ImageItem[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [page, setPage] = useState<number>(1)
@@ -32,7 +32,10 @@ export default function Home() {
         setLoading(true)
         setError(null)
         const data: ImageMetadata[] = await getAllImages(1, LIMIT, queries)
-        const images_url: string[] = data.map((e) => e.image_url)
+        const images_url: ImageItem[] = data.map(e => ({
+          id: e.id,
+          image_url: e.image_url
+        }));
         setImages(images_url)
         // nếu số ảnh ít hơn LIMIT => coi như hết luôn
         if (data.length < LIMIT) {
@@ -57,7 +60,10 @@ export default function Home() {
         setIsLoadingMore(true)
         const nextPage = page + 1
         const data: ImageMetadata[] = await getAllImages(nextPage, LIMIT, queries)
-        const images_url: string[] = data.map((e) => e.image_url)
+        const images_url: ImageItem[] = data.map(e => ({
+          id: e.id,
+          image_url: e.image_url
+        }));
 
         setImages(prev => [...prev, ...images_url])
         setPage(nextPage)

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { ProfileData } from "./types";
-import MasonryGallery from "../home/MasonryImageDisplay";
+import MasonryGalleryProfile from "./MasonryGalleryForProfile";
 
 type ProfileTabsProps = {
   profileData: ProfileData;
@@ -55,9 +55,9 @@ export default function ProfileTabs({ profileData }: ProfileTabsProps) {
           {profileData.uploaded.length === 0 ? (
             <div className="text-center py-12 text-zinc-500">
               No uploaded images yet
-            </div>
+            </div>  
           ) : (
-            <MasonryGallery images={profileData.uploaded} />
+            <MasonryGalleryProfile images={profileData.uploaded} />
           )}
         </>
       )}

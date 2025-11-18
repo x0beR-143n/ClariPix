@@ -101,17 +101,3 @@ export const getAllImages = async (
   }
 };
 
-    return cleaned;
-  } catch (err) {
-    if (axios.isAxiosError(err)) {
-      if (!err.response) {
-        throw { code: "NETWORK", message: "Network Error" };
-      }
-      throw {
-        code: "ServerError",
-        message: "Temporarily can not get images. Please try again later",
-      };
-    }
-    throw { code: "NETWORK", message: "Network Error" };
-  }
-};
