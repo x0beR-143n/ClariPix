@@ -1,6 +1,7 @@
 const AWS = require('aws-sdk');
 const Image = require("../models/image.model");
 const ImageViewByUser = require("../models/imageViewByUser.model");
+const { Op } = require('sequelize');
 
 const s3 = new AWS.S3({
     region: process.env.AWS_REGION || 'ap-southeast-2',
@@ -120,7 +121,7 @@ async function getImageById(imageId, userId = null) {
             return null;
         }
 
-        // Chỉ tăng view count nếu user đã đăng nhập (userId không null)
+        // Only increase view if login (userId không null)
         if (userId) {
             try {
                 await incrementView(userId, imageId);
@@ -139,14 +140,63 @@ async function getImageById(imageId, userId = null) {
     }
 }
 
-async function getImagesWithPagination(page, limit, sorter, order) {
+const THRESHOLD = 0.5;
+
+async function getImagesWithPagination(page = 1, limit = 10, sorter = 'created_at', order = 'DESC', queries = []) {
     const offset = (page - 1) * limit;
-    return await Image.findAll({
+
+    const safeCondition = {
+        safe_score: {
+            [Op.not]: null,
+            [Op.gt]: THRESHOLD
+        }
+    };
+
+    // Nếu có queries
+    if (Array.isArray(queries) && queries.length > 0) {
+        const results = await Promise.all(
+            queries.map(async (q) => {
+                const where = {
+                    ...safeCondition,
+                    categories: {
+                        [Op.contains]: [q]
+                    }
+                };
+
+                return Image.findAll({
+                    where,
+                    offset,
+                    limit,
+                    order: [[sorter, order]]
+                });
+            })
+        );
+
+        // results: Array<Array<Image>>
+        // Flatten + remove duplicates
+        const flat = results.flat();
+
+        // Loại trùng theo primary key (id)
+        const unique = Array.from(
+            new Map(flat.map(img => [img.id, img])).values()
+        );
+
+        return unique;
+    }
+
+    // Không có queries
+    const where = { ...safeCondition };
+
+    const images = await Image.findAll({
+        where,
         offset,
         limit,
-        order: [[sorter, order]],
+        order: [[sorter, order]]
     });
+
+    return images;
 }
+
 
 module.exports = {
     createImageRecordInDB,
