@@ -1,5 +1,5 @@
-const {DataTypes} = require('sequelize');
-const {sequelize} = require('../database/db');
+import { DataTypes } from 'sequelize';
+import sequelize from '../database/db.js';
 
 const LikeByUserModel = sequelize.define('LikeByUser', {
     user_id: {
@@ -20,4 +20,4 @@ const LikeByUserModel = sequelize.define('LikeByUser', {
     ],
 });
 
-module.exports = LikeByUserModel;
+export default LikeByUserModel;

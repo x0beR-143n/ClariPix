@@ -1,4 +1,4 @@
-const { StatusCodes } = require('http-status-codes');
+import { StatusCodes } from 'http-status-codes';
 
 function errorHandler(err, req, res, next) {
     console.error('Error:', err);
@@ -43,4 +43,4 @@ function errorHandler(err, req, res, next) {
     });
 }
 
-module.exports = { errorHandler };
+export default errorHandler;

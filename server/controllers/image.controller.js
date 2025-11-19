@@ -1,6 +1,6 @@
-const { StatusCodes } = require('http-status-codes');
-const imageService = require('../services/image.service');
-const multer = require('multer');
+import { StatusCodes } from 'http-status-codes';
+import imageService from '../services/image.service.js';
+import multer from 'multer';
 
 // Configure multer for file uploads
 const upload = multer({ storage: multer.memoryStorage() });
@@ -187,7 +187,7 @@ async function getImageById(req, res) {
 const uploadMiddleware = upload.single('image');
 const uploadMultipleMiddleware = upload.array('images', 10);
 
-module.exports = {
+export default {
   uploadImage,
   uploadMiddleware,
   uploadMultipleMiddleware,

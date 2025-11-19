@@ -5,9 +5,9 @@
  *   description: User authentication APIs
  */
 
-const express = require('express');
-const authController = require('../controllers/auth.controller');
-const { validate, registerValidation, loginValidation } = require('../middleware/validation.middleware');
+import express from 'express';
+import authController from '../controllers/auth.controller.js';
+import { validate, registerValidation, loginValidation } from '../middleware/validation.middleware.js';
 
 const router = express.Router();
 
@@ -202,4 +202,4 @@ const router = express.Router();
 router.post('/register', validate(registerValidation), authController.register);
 router.post('/login', validate(loginValidation), authController.login);
 
-module.exports = router;
+export default router;

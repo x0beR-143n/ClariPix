@@ -1,5 +1,5 @@
-const {DataTypes} = require("sequelize");
-const { sequelize } = require("sequelize");
+import { DataTypes } from 'sequelize';
+import sequelize from '../database/db.js';
 
 const Flag = sequelize.define('Flag', {
     id: {
@@ -41,4 +41,4 @@ const Flag = sequelize.define('Flag', {
     ]
 });
 
-module.exports = Flag;
+export default Flag;

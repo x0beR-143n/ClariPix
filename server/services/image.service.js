@@ -1,7 +1,7 @@
-const AWS = require('aws-sdk');
-const Image = require("../models/image.model");
-const ImageViewByUser = require("../models/imageViewByUser.model");
-const { Op } = require('sequelize');
+import AWS from 'aws-sdk';
+import Image from "../models/image.model.js";
+import ImageViewByUser from "../models/imageViewByUser.model.js";
+import { Op } from 'sequelize';
 
 const s3 = new AWS.S3({
     region: process.env.AWS_REGION || 'ap-southeast-2',
@@ -198,10 +198,9 @@ async function getImagesWithPagination(page = 1, limit = 10, sorter = 'created_a
 }
 
 
-module.exports = {
+export default {
     createImageRecordInDB,
     deleteImageFromS3,
-    incrementView,
     getImagesWithPagination,
     getImageById
 }

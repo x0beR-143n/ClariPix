@@ -16,4 +16,4 @@ const AVAILABLE_CATEGORIES = [
     "education",
 ];
 
-module.exports = { AVAILABLE_CATEGORIES };
+export default { AVAILABLE_CATEGORIES };

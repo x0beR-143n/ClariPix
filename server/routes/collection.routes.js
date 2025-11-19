@@ -5,16 +5,16 @@
  *   description: User collection management APIs
  */
 
-const express = require("express");
-const collectionController = require("../controllers/collection.controller");
-const { authenticate } = require("../middleware/authenticate");
-const {
+import express from "express";
+import collectionController from "../controllers/collection.controller.js";
+import authenticate from "../middleware/authenticate.js";
+import {
     validate,
     createCollectionValidation,
     collectionIdValidation,
-    imageIdValidation, collectionImagesValidation,
+    collectionImagesValidation,
     multipleImageIdValidation,
-} = require("../middleware/validation.middleware");
+} from "../middleware/validation.middleware.js";
 
 const router = express.Router();
 
@@ -464,4 +464,4 @@ router.delete(
     collectionController.deleteCollection
 );
 
-module.exports = router;
+export default router;

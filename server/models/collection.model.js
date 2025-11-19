@@ -1,5 +1,5 @@
-const {DataTypes} = require('sequelize');
-const {sequelize} = require('../database/db');
+import { DataTypes } from 'sequelize';
+import sequelize from '../database/db.js';
 
 const Collection = sequelize.define('Collection', {
     id: {
@@ -40,4 +40,4 @@ Collection.associate = function(models) {
     });
 };
 
-module.exports = Collection;
+export default Collection;

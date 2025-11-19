@@ -1,5 +1,5 @@
-const {DataTypes} = require('sequelize');
-const {sequelize} = require('../database/db');
+import { DataTypes } from 'sequelize';
+import sequelize from '../database/db.js';
 
 // Bảng CollectionImages (Bảng nối Many-to-Many)
 // Sequelize sẽ tự tạo bảng này khi dùng 'belongsToMany'
@@ -19,4 +19,4 @@ const CollectionImage = sequelize.define('CollectionImage', {
     tableName: 'collection_images',
 });
 
-module.exports = CollectionImage;
+export default CollectionImage;

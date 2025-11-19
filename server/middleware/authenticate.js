@@ -1,5 +1,5 @@
-const jwt = require('jsonwebtoken');
-const { StatusCodes } = require('http-status-codes');
+import jwt from 'jsonwebtoken';
+import { StatusCodes } from 'http-status-codes';
 
 function authenticate(req, res, next) {
     const authHeader = req.headers.authorization;
@@ -25,4 +25,4 @@ function authenticate(req, res, next) {
     }
 }
 
-module.exports = { authenticate };
+export default authenticate;

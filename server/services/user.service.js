@@ -1,8 +1,8 @@
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const User = require('../models/user.model');
-const { AVAILABLE_CATEGORIES } = require('../constants/categories');
-const Image = require('../models/image.model');
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import User from '../models/user.model.js';
+import AVAILABLE_CATEGORIES from '../constants/categories.js';
+import Image from '../models/image.model.js';
 
 async function register(userData) {
     const { name, email, password, gender, birthdate } = userData;
@@ -268,13 +268,12 @@ async function getUserUploadedImages(userId, page = 1, limit = 10) {
     }
 }
 
-module.exports = {
+export default {
     register,
     login,
     setUserPreferences,
     getUserById,
     updateUserProfile,
-    getUserUploadedImagesWithoutPagination,
     getAvailableCategories,
     getUserUploadedImages
 };

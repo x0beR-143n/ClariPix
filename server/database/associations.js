@@ -1,10 +1,10 @@
 // database/associations.js
-const User = require('../models/user.model');
-const Image = require('../models/image.model');
-const Collection = require('../models/collection.model');
-const CollectionImage = require('../models/collectionImage.model');
-const LikeByUser = require('../models/likeByUser.model');
-const ImageViewByUser = require('../models/imageViewByUser.model');
+import User from '../models/user.model.js';
+import Image from '../models/image.model.js';
+import Collection from '../models/collection.model.js';
+import CollectionImage from '../models/collectionImage.model.js';
+import LikeByUser from '../models/likeByUser.model.js';
+import ImageViewByUser from '../models/imageViewByUser.model.js';
 
 function setupAssociations() {
     try {
@@ -89,4 +89,4 @@ function setupAssociations() {
     }
 }
 
-module.exports = { setupAssociations };
+export default setupAssociations;

@@ -1,6 +1,6 @@
-const userService = require('../services/user.service');
-const collectionService = require('../services/collection.service');
-const {StatusCodes} = require("http-status-codes");
+import userService from '../services/user.service.js';
+import collectionService from '../services/collection.service.js';
+import { StatusCodes } from 'http-status-codes';
 
 async function setPreferences(req, res, next) {
     try {
@@ -89,7 +89,7 @@ async function getUserUploadedImages(req, res, next) {
     }
 }
 
-module.exports = {
+export default {
     setPreferences,
     getUserProfile,
     updateProfile,

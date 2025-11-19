@@ -17,8 +17,8 @@ COPY . .
 RUN npx prisma generate
 
 # Mở port
-ENV PORT=8080
-EXPOSE 8080
+ENV PORT=3618
+EXPOSE 3618
 
 # CHẠY PRODUCTION: Dùng npm start thay vì dev
 CMD ["npm", "start"]

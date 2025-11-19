@@ -2,19 +2,19 @@
 import express from "express";
 import cors from "cors";
 import swaggerDocs from "./swagger.js";
-import { sequelize } from "./database/db.js";
-import { setupAssociations } from "./database/associations.js";
+import sequelize from "./database/db.js";
+import setupAssociations from "./database/associations.js";
 import mainRouter from "./routes/main.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import imageRoutes from "./routes/image.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import collectionRoutes from "./routes/collection.routes.js";
-import { errorHandler } from "./middleware/errorHandler.js";
+import errorHandler from "./middleware/errorHandler.js";
 import dotenv from "dotenv";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3618;
 
 app.use(express.json());
 app.use(

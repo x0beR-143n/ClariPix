@@ -5,10 +5,10 @@
  *   description: API cho quản lý ảnh người dùng (upload, xem, xóa, ...)
  */
 
-const express = require("express");
-const imageController = require("../controllers/image.controller");
-const { authenticate } = require("../middleware/authenticate");
-const { validate, imageIdParamValidation, paginationValidation } = require("../middleware/validation.middleware");
+import express from "express";
+import imageController from "../controllers/image.controller.js";
+import authenticate from "../middleware/authenticate.js";
+import { validate, imageIdParamValidation, paginationValidation } from "../middleware/validation.middleware.js";
 
 const router = express.Router();
 
@@ -344,4 +344,4 @@ router.get(
     imageController.getImageById
 );
 
-module.exports = router;
+export default router;

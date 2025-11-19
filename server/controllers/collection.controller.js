@@ -1,5 +1,5 @@
-const { StatusCodes } = require('http-status-codes');
-const collectionService = require('../services/collection.service');
+import { StatusCodes } from 'http-status-codes';
+import collectionService from '../services/collection.service.js';
 
 async function createCollection(req, res, next) {
     try {
@@ -128,7 +128,7 @@ async function createDefaultCollection(req, res, next) {
     }
 }
 
-module.exports = {
+export default {
     createCollection,
     getUserCollections,
     getCollectionImages,

@@ -1,7 +1,6 @@
-// services/collection.service.js
-const Collection = require("../models/collection.model");
-const CollectionImage = require("../models/collectionImage.model");
-const Image = require("../models/image.model");
+import Collection from "../models/collection.model.js";
+import CollectionImage from "../models/collectionImage.model.js";
+import Image from "../models/image.model.js";
 
 async function createCollection(userId, collectionData) {
     try {
@@ -252,7 +251,7 @@ async function createDefaultCollection(userId) {
     }
 }
 
-module.exports = {
+export default {
     createCollection,
     getUserCollections,
     getCollectionImages,

@@ -1,10 +1,10 @@
-const { sequelize } = require('../database/db');
-const User = require('./user.model');
-const Image = require('./image.model');
-const Collection = require('./collection.model');
-const CollectionImage = require('./collectionImage.model');
-const LikeByUser = require('./likeByUser.model');
-const ImageViewByUser = require('./imageViewByUser.model');
+import sequelize from '../database/db.js';
+import User from './user.model.js';
+import Image from './image.model.js';
+import Collection from './collection.model.js';
+import CollectionImage from './collectionImage.model.js';
+import LikeByUser from './likeByUser.model.js';
+import ImageViewByUser from './imageViewByUser.model.js';
 
 // Associations
 function setupAssociations() {
@@ -44,7 +44,7 @@ function setupAssociations() {
 
 setupAssociations();
 
-module.exports = {
+export default {
     sequelize,
     User,
     Image,

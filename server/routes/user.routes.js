@@ -5,11 +5,12 @@
  *   description: User profile management APIs
  */
 
-const express = require('express');
+import express from 'express';
+import userController from '../controllers/user.controller.js';
+import authenticate from '../middleware/authenticate.js';
+import { validate, updateProfileValidation, preferencesValidation } from '../middleware/validation.middleware.js';
+
 const router = express.Router();
-const userController = require('../controllers/user.controller');
-const { authenticate } = require('../middleware/authenticate');
-const { validate, updateProfileValidation, preferencesValidation } = require('../middleware/validation.middleware');
 
 /**
  * @swagger
@@ -444,4 +445,4 @@ router.get('/profile', authenticate, userController.getUserProfile);
 router.put('/profile', authenticate, validate(updateProfileValidation), userController.updateProfile);
 router.post('/preferences', authenticate, validate(preferencesValidation), userController.setPreferences);
 router.get('/my-images', authenticate, userController.getUserUploadedImages);
-module.exports = router;
+export default router;

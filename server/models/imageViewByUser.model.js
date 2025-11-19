@@ -1,5 +1,5 @@
-const {DataTypes} = require('sequelize');
-const {sequelize} = require('../database/db');
+import { DataTypes } from 'sequelize';
+import sequelize from '../database/db.js';
 
 const ImageViewByUser = sequelize.define('ImageViewByUser', {
     user_id: {
@@ -20,4 +20,4 @@ const ImageViewByUser = sequelize.define('ImageViewByUser', {
     ],
 });
 
-module.exports = ImageViewByUser;
+export default ImageViewByUser;
