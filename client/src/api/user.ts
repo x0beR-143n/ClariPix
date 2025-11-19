@@ -52,6 +52,15 @@ export type ServerProfileResponse = {
   data: ServerProfile
 }
 
+export type UpdateProfilePayload = {
+  name?: string
+  email?: string
+  gender?: 'male' | 'female' | 'other'
+  birthdate?: string
+  avatar_url?: string
+  preferences?: string[]
+}
+
 export const getUserProfile = async (): Promise<ServerProfile> => {
   const { data } = await axiosAuth.get<ServerProfileResponse>('/users/profile')
   if (data && 'data' in data) return (data as ServerProfileResponse).data
@@ -89,5 +98,11 @@ export function mapServerProfileToProfileData(p: ServerProfile): ProfileData {
 export async function fetchCurrentUserProfile(): Promise<ProfileData> {
   const server = await getUserProfile()
   return mapServerProfileToProfileData(server)
+}
+
+export async function updateUserProfile(payload: UpdateProfilePayload): Promise<ProfileData> {
+  const { data } = await axiosAuth.put<{ success: boolean; data: ServerProfile }>('/users/profile', payload)
+  const serverProfile = data && 'data' in data ? data.data : (data as any)
+  return mapServerProfileToProfileData(serverProfile as ServerProfile)
 }
 
