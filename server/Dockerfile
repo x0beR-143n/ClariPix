@@ -1,17 +1,24 @@
-# Step 1: Base image
-FROM node:18-alpine
+# Dùng Node 20 Alpine cho nhẹ
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Step 2: Copy package.json và cài dependencies
+# Copy package và cài dependencies
 COPY package*.json ./
+
+# Quan trọng: Cài đặt dependencies (bao gồm cả devDependencies vì bạn cần babel-node nếu chưa build)
+# Tuy nhiên, tốt nhất là chạy node thuần.
 RUN npm install
 
-# Step 3: Copy source code
+# Copy toàn bộ code trong folder server vào image
 COPY . .
 
-# Step 4: Build nếu cần (ở đây dùng babel thì có thể build trước)
-# RUN npx babel src --out-dir dist || true
+# Generate Prisma Client (BẮT BUỘC để tránh lỗi khi chạy)
+RUN npx prisma generate
 
-# Step 5: Start app
-CMD ["npm", "run", "dev"]
+# Mở port
+ENV PORT=8080
+EXPOSE 8080
+
+# CHẠY PRODUCTION: Dùng npm start thay vì dev
+CMD ["npm", "start"]

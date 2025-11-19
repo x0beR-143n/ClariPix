@@ -14,13 +14,15 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3618;
+const PORT = process.env.PORT || 8080;
 
 app.use(express.json());
 app.use(
-  cors({
-    origin: "http://localhost:3000"
-  })
+    cors({
+        origin: "*", // Cho phép tất cả (để test), sau này thay bằng domain frontend thật
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        credentials: true
+    })
 );
 
 // Routes
