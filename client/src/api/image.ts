@@ -1,6 +1,7 @@
-import { axiosBase } from "./api";
-import { ImageMetadata } from "../interfaces/images";
-import axios from "axios";
+import { axiosBase, axiosAuth } from './api'
+import { ImageMetadata } from '../interfaces/images'
+import axios from 'axios';
+
 
 export type ServerImageDetail = {
   id: string
@@ -100,4 +101,21 @@ export const getAllImages = async (
     throw { code: "NETWORK", message: "Network Error" };
   }
 };
+
+export const deleteImage = async (imageId: string): Promise<void> => {
+  try {
+    await axiosAuth.delete(`/images/${imageId}`);
+  } catch (err) {
+    if (axios.isAxiosError(err)) {
+      if (!err.response) {
+        throw { code: 'NETWORK', message: 'Network Error' }
+      }
+      throw {
+        code: 'ServerError',
+        message: err.response.data?.message || 'Unable to delete image. Please try again later',
+      }
+    }
+    throw { code: 'NETWORK', message: 'Network Error' }
+  }
+}
 

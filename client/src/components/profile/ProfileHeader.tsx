@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Settings, MoreHorizontal } from "lucide-react";
+import { Settings, MoreHorizontal, Pencil } from "lucide-react";
 import Link from "next/link";
 import type { ProfileData } from "./types";
 
@@ -47,7 +47,6 @@ export default function ProfileHeader({ profileData }: ProfileHeaderProps) {
               <h1 className="text-3xl md:text-4xl font-bold text-zinc-900 mb-2">
                 {profileData.name}
               </h1>
-              <p className="text-zinc-600 mb-1">@{profileData.email.split("@")[0]}</p>
               {profileData.birthdate && (
                 <p className="text-sm text-zinc-500">
                   Joined {formatDate(profileData.created_at)}
@@ -58,11 +57,11 @@ export default function ProfileHeader({ profileData }: ProfileHeaderProps) {
             {/* Action buttons */}
             <div className="flex items-center gap-3">
               <Link
-                href="/settings"
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-100 text-zinc-900 font-semibold text-sm hover:bg-zinc-200 transition-colors"
+                href="/profile/edit"
+                className="flex items-center justify-center h-9 px-4 rounded-full bg-red-600 text-white text-xs font-semibold hover:bg-red-800 transition-colors whitespace-nowrap"
               >
-                <Settings size={18} />
-                Settings
+                <Pencil className="mr-2" size={18} />
+                Edit profile
               </Link>
               <button
                 className="flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-100 text-zinc-900 font-semibold text-sm hover:bg-zinc-200 transition-colors"
