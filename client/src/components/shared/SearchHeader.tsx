@@ -97,14 +97,11 @@ export default function SearchHeader({ text }: SearchHeaderProps) {
                   data-[state=open]:bg-zinc-200
                 "
               >
-                <span className="relative w-10 h-10">
-                  <Image
-                    src={user?.avatar_url || male_url}
-                    alt="Avatar"
-                    fill
-                    className="rounded-full object-cover"
-                  />
-                </span>
+                <div className="relative w-10 h-10">
+                  <div className="w-full h-full flex items-center justify-center text-xl font-bold text-zinc-400 bg-zinc-200 rounded-full">
+                    {user?.name.charAt(0).toUpperCase()}
+                  </div>
+                </div>
                 <ChevronDown
                   size={20}
                   strokeWidth={1.25}

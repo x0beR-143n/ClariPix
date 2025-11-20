@@ -10,7 +10,6 @@ import PictureActionButtons from "../../../components/picture_detail/PictureActi
 import PictureStats from "../../../components/picture_detail/PictureStats";
 import PictureCategories from "../../../components/picture_detail/PictureCategories";
 import PictureMetadata from "../../../components/picture_detail/PictureMetadata";
-import MasonryGallery from "../../../components/home/MasonryImageDisplay";
 import { getImageById, deleteImage } from "../../../api/image";
 import type { PictureData } from "../../../components/picture_detail/types";
 import { useAuthStore } from "../../../store/authStore";
@@ -39,7 +38,6 @@ export default function PictureDetailPage({ params }: { params: Promise<{ id: st
   const [error, setError] = useState<string | null>(null);
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
-  const [relatedImages] = useState<string[]>([]);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
@@ -168,12 +166,6 @@ export default function PictureDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
 
-        {relatedImages.length > 0 && (
-          <div className="max-w-7xl mx-auto mt-12">
-            <h2 className="text-2xl font-bold text-zinc-900 mb-6">Related images</h2>
-            <MasonryGallery images={relatedImages} />
-          </div>
-        )}
       </div>
     </div>
   );
