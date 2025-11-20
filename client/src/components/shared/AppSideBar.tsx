@@ -16,7 +16,6 @@ type Item = {
 
 const TOP_ITEMS: Item[] = [
   { href: '/', label: 'Home', icon: House, exact: true },
-  { href: '/discover', label: 'Discover', icon: Compass },
   { href: '/create', label: 'Create', icon: CircleFadingPlus },
   { href: '/profile', label: 'Profile', icon: UserRound },
 ]

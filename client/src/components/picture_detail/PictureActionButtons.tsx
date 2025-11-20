@@ -1,16 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Heart, Share2, FolderPlus } from "lucide-react";
+import { Heart, Share2, FolderPlus, Trash2 } from "lucide-react";
 import ShareModal from "./ShareModal";
 import AddToCollectionModal from "./AddToCollectionModal";
 import { useAuthStore } from "../../store/authStore";
+import DeleteConfirmationModal from "./DeleteConfirmationModal";
 
 type PictureActionButtonsProps = {
   isLiked: boolean;
   likeCount: number;
   onLike: () => void;
   imageId: string;
+  canDelete: boolean;
+  onDelete?: () => Promise<void> | void;
+  deleteLoading?: boolean;
 };
 
 export default function PictureActionButtons({
@@ -18,9 +22,13 @@ export default function PictureActionButtons({
   likeCount,
   onLike,
   imageId,
+  canDelete,
+  onDelete,
+  deleteLoading,
 }: PictureActionButtonsProps) {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const { isLogin } = useAuthStore();
 
   return (
@@ -55,6 +63,17 @@ export default function PictureActionButtons({
           <Share2 size={18} />
           Share
         </button>
+
+        {canDelete && (
+          <button
+          onClick={() => setDeleteModalOpen(true)}
+            disabled={deleteLoading}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-full font-semibold text-sm bg-red-50 text-red-600 hover:bg-red-100 transition-colors disabled:opacity-60"
+          >
+            <Trash2 size={18} />
+            {deleteLoading ? "Deleting..." : "Delete"}
+          </button>
+        )}
       </div>
 
       <ShareModal
@@ -67,6 +86,21 @@ export default function PictureActionButtons({
           open={collectionModalOpen}
           onClose={() => setCollectionModalOpen(false)}
           imageId={imageId}
+        />
+      )}
+
+      {canDelete && onDelete && (
+        <DeleteConfirmationModal
+          open={deleteModalOpen}
+          onClose={() => {
+            if (!deleteLoading) setDeleteModalOpen(false);
+          }}
+          onConfirm={async () => {
+            if (deleteLoading) return;
+            await onDelete();
+            setDeleteModalOpen(false);
+          }}
+          loading={deleteLoading}
         />
       )}
     </>
