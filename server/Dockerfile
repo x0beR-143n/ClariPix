@@ -1,24 +1,20 @@
-# Dùng Node 20 Alpine cho nhẹ
+# Sử dụng Node 20 Alpine
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package và cài dependencies
+# Copy package files
 COPY package*.json ./
 
-# Quan trọng: Cài đặt dependencies (bao gồm cả devDependencies vì bạn cần babel-node nếu chưa build)
-# Tuy nhiên, tốt nhất là chạy node thuần.
+# Cài đặt dependencies (production only để nhẹ hơn, nhưng nếu cần devDependencies để build babel thì cứ để install thường)
 RUN npm install
 
-# Copy toàn bộ code trong folder server vào image
+# Copy toàn bộ source code
 COPY . .
 
-# Generate Prisma Client (BẮT BUỘC để tránh lỗi khi chạy)
-RUN npx prisma generate
+# Cloud Run sẽ tự inject biến PORT, nhưng ta cứ EXPOSE để document
+ENV PORT=8080
+EXPOSE 8080
 
-# Mở port
-ENV PORT=3618
-EXPOSE 3618
-
-# CHẠY PRODUCTION: Dùng npm start thay vì dev
+# Chạy lệnh start (node index.js)
 CMD ["npm", "start"]

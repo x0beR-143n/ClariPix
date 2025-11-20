@@ -1,4 +1,4 @@
-const AVAILABLE_CATEGORIES = [
+export const AVAILABLE_CATEGORIES = [
     "travel",
     "food",
     "art",

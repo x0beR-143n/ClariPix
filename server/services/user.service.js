@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.model.js';
-import AVAILABLE_CATEGORIES from '../constants/categories.js';
+import { AVAILABLE_CATEGORIES } from '../constants/categories.js';
 import Image from '../models/image.model.js';
 
 async function register(userData) {

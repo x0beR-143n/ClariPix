@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@dotenvx/dotenvx-ops": "^0.17.1",
-    "@prisma/client": "^6.16.3",
     "aws-sdk": "^2.1692.0",
     "bcrypt": "^6.0.0",
     "compression": "^1.8.1",
@@ -33,7 +32,6 @@
     "multer": "^2.0.2",
     "pg": "^8.16.3",
     "pino": "^9.11.0",
-    "prisma": "^6.16.3",
     "pug": "3.0.3",
     "sequelize": "^6.37.7",
     "swagger-jsdoc": "^6.2.8",
