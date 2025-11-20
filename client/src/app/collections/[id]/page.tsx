@@ -4,13 +4,15 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { ArrowLeft, Edit, Trash2, Lock, Globe, Users } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Lock, Globe, Users, Plus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getCollectionByID } from "@/src/api/collection";
+import { toast } from "sonner";
+import { getCollectionByID, removeImageFromCollection, deleteCollection } from "@/src/api/collection";
 import type { CollectionType } from "@/src/interfaces/collection";
+import SelectMyImages from "@/src/app/create/components/select-my-images";
 
 function getPrivacyIcon(privacy?: string) {
   switch (privacy) {
@@ -73,6 +75,11 @@ export default function CollectionDetailsPage() {
   const [data, setData] = useState<CollectionType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSelectingImages, setIsSelectingImages] = useState(false);
+  const [removingImageId, setRemovingImageId] = useState<string | null>(null);
+  const [isDeletingCollection, setIsDeletingCollection] = useState(false);
+  const [reloadToken, setReloadToken] = useState(0);
 
   const idParam = params?.id;
   const collectionId =
@@ -88,7 +95,7 @@ export default function CollectionDetailsPage() {
 
     async function fetchCollection() {
       try {
-        const res = await getCollectionByID(collectionId ?? '');
+        const res = await getCollectionByID(collectionId ?? "");
         if (!cancelled) {
           setData(res);
         }
@@ -108,10 +115,60 @@ export default function CollectionDetailsPage() {
     return () => {
       cancelled = true;
     };
-  }, [collectionId]);
+  }, [collectionId, reloadToken]);
+
+  const handleRemoveImage = async (imageId: string) => {
+    if (!collectionId) return;
+    try {
+      setRemovingImageId(imageId);
+      await removeImageFromCollection(collectionId, imageId);
+      setData((prev) =>
+        prev
+          ? {
+              ...prev,
+              images: prev.images.filter((img) => img.id !== imageId),
+            }
+          : prev
+      );
+      toast.success("Đã xóa ảnh khỏi bộ sưu tập");
+    } catch {
+      toast.error("Không thể xóa ảnh khỏi bộ sưu tập");
+    } finally {
+      setRemovingImageId(null);
+    }
+  };
+
+  const handleDeleteCollection = async () => {
+    if (!collectionId) return;
+    const confirmed = window.confirm("Bạn có chắc muốn xóa bộ sưu tập này không?");
+    if (!confirmed) return;
+    try {
+      setIsDeletingCollection(true);
+      await deleteCollection(collectionId);
+      toast.success("Đã xóa bộ sưu tập");
+      router.push("/profile");
+    } catch {
+      toast.error("Không thể xóa bộ sưu tập");
+    } finally {
+      setIsDeletingCollection(false);
+    }
+  };
 
   const collection = data?.collection;
   const images = data?.images ?? [];
+
+  if (isSelectingImages && collectionId) {
+    return (
+      <SelectMyImages
+        collectionId={collectionId}
+        onDone={() => {
+          setIsSelectingImages(false);
+          setReloadToken((prev) => prev + 1);
+        }}
+        onCancel={() => setIsSelectingImages(false)}
+      />
+    );
+  }
 
   return (
     <main className="min-h-screen bg-background">
@@ -184,10 +241,26 @@ export default function CollectionDetailsPage() {
               </div>
 
               <div className="flex gap-2">
-                <Button variant="outline" size="icon">
+                <Button
+                  variant={isEditing ? "destructive" : "outline"}
+                  size="icon"
+                  onClick={() => setIsEditing((prev) => !prev)}
+                >
                   <Edit className="h-4 w-4" />
                 </Button>
-                <Button variant="destructive" size="icon">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setIsSelectingImages(true)}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  onClick={handleDeleteCollection}
+                  disabled={isDeletingCollection}
+                >
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
@@ -217,6 +290,21 @@ export default function CollectionDetailsPage() {
                 className="group relative overflow-hidden break-inside-avoid cursor-pointer transition-all hover:shadow-lg"
               >
                 <div className="relative w-full">
+                  {isEditing && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!removingImageId) {
+                          handleRemoveImage(image.id);
+                        }
+                      }}
+                      className="absolute top-2 right-2 z-10 rounded-full bg-black/60 text-white p-1 hover:bg-black/80 disabled:opacity-50"
+                      disabled={removingImageId === image.id}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
                   <Image
                     src={image.image_url || "/placeholder.svg"}
                     alt={image.description || collection?.name || "Image"}
@@ -253,7 +341,7 @@ export default function CollectionDetailsPage() {
               <p className="text-muted-foreground mb-4">
                 This collection doesn&apos;t have any images yet.
               </p>
-              <Button onClick={() => router.push("/create")}>Add Images</Button>
+              <Button onClick={() => setIsSelectingImages(true)}>Add Images</Button>
             </div>
           </Card>
         ) : null}
